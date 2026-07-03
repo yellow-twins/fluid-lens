@@ -1,0 +1,36 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use Symfony\Component\Console\Application;
+use YellowTwins\FluidLens\Command\AnalyzeCommand;
+use YellowTwins\FluidLens\Command\ParseCommand;
+use YellowTwins\FluidLens\Command\SimilarCommand;
+
+(static function (): void {
+    $autoloaders = [
+        __DIR__ . '/../vendor/autoload.php',   // Standalone install of fluid-lens itself.
+        __DIR__ . '/../../../autoload.php',     // Installed as a dependency inside another project.
+    ];
+
+    $loaded = false;
+    foreach ($autoloaders as $autoloader) {
+        if (is_file($autoloader)) {
+            require $autoloader;
+            $loaded = true;
+            break;
+        }
+    }
+
+    if ($loaded === false) {
+        fwrite(STDERR, 'fluid-lens: could not locate the Composer autoloader. Run "composer install".' . PHP_EOL);
+        exit(1);
+    }
+
+    $application = new Application('fluid-lens', '0.1.0-dev');
+    $application->add(new ParseCommand());
+    $application->add(new AnalyzeCommand());
+    $application->add(new SimilarCommand());
+    $application->run();
+})();
