@@ -80,6 +80,20 @@ vendor/bin/fluid-lens similar path/to/Templates/ --threshold=0.85 --json
 Similarity is measured with pq-gram distance, a fast approximation of tree edit
 distance. Structures are clustered by transitive similarity above the threshold.
 
+### Check slider/carousel library consistency
+
+Sliders are a common source of drift: the same slider gets copied into several
+templates, and over time different libraries creep in. fluid-lens covers both:
+
+```bash
+vendor/bin/fluid-lens sliders packages/
+```
+
+`sliders` reports which known libraries (Swiper, Slick, Glide, Splide, Owl,
+Flickity, Keen, Tiny Slider) are used and where, and exits non-zero if more than
+one is mixed into the project. Duplicated slider *markup* is caught by `analyze`
+and `similar` — extract it into one shared Partial.
+
 ### Check accessibility (WCAG) and best practices
 
 Scan templates for accessibility and best-practice problems in seconds, instead
@@ -239,6 +253,7 @@ given, fall back to the configured `paths`.
 | `analyze` | Find exact duplicated structures          | `--min-elements`, `--min-occurrences`, `--baseline`, `--generate-baseline`, `--json` |
 | `similar` | Find near-duplicate structures            | `--threshold`, `--min-elements`, `--json` |
 | `lint`    | Check accessibility (WCAG) & best practices | `--only`, `--exclude`, `--fail-on`, `--baseline`, `--generate-baseline`, `--list-rules`, `--json`, `--sarif` |
+| `sliders` | Report slider/carousel libraries, flag a mix | `--json` |
 | `parse`   | Dump one template's structural node tree  | `--json` |
 
 ### Exit codes

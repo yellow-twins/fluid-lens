@@ -5,6 +5,7 @@ declare(strict_types=1);
 use YellowTwins\FluidLens\Command\AnalyzeCommand;
 use YellowTwins\FluidLens\Command\LintCommand;
 use YellowTwins\FluidLens\Command\SimilarCommand;
+use YellowTwins\FluidLens\Command\SlidersCommand;
 
 // Optional TYPO3 integration.
 //
@@ -22,4 +23,5 @@ return [
     'fluidlens:analyze' => ['class' => AnalyzeCommand::class],
     'fluidlens:similar' => ['class' => SimilarCommand::class],
     'fluidlens:lint' => ['class' => LintCommand::class],
+    'fluidlens:sliders' => ['class' => SlidersCommand::class],
 ];
