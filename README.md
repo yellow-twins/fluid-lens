@@ -155,6 +155,14 @@ What it checks statically:
 | `wcag.video-captions` — `<video>` without a captions track | warning | 1.2.2 (A) |
 | `wcag.marquee-blink` — `<marquee>`/`<blink>` moving content | warning | 2.2.2 (A) |
 | `wcag.link-generic-text` — non-descriptive link text ("read more") | notice | 2.4.4 (A) |
+| `wcag.lang-valid` — invalid `lang` attribute value | warning | 3.1.1 (A) |
+| `wcag.label-empty` — `<label>` with no text | warning | 3.3.2 (A) |
+| `wcag.aria-boolean` — boolean ARIA attribute with an invalid value | warning | 4.1.2 (A) |
+| `wcag.dir-valid` — invalid `dir` attribute value | warning | 1.3.2 (A) |
+| `wcag.meta-refresh` — timed `<meta http-equiv="refresh">` | warning | 2.2.1 (A) |
+| `wcag.summary-details` — `<summary>` outside a `<details>` | warning | 1.3.1 (A) |
+| `wcag.scope-value` — invalid table-cell `scope` value | warning | 1.3.1 (A) |
+| `wcag.abbr-title` — `<abbr>` without a `title` | notice | 3.1.4 (**AAA**) |
 | `markup.picture-img` — `<picture>` without an `<img>` fallback | warning | — |
 | `markup.source-srcset` — `<source>` in `<picture>` without `srcset` | warning | — |
 | `style.inline` — inline `style` attribute | notice | — |

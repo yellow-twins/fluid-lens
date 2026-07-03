@@ -31,7 +31,11 @@ All notable changes to this project are documented here. The format is based on
   image buttons without alt, alt text that is just a file name, nested
   interactive controls, `<fieldset>` without `<legend>`, non-`<li>` list
   children, empty `<th>`, ARIA roles missing their required state, `<video>`
-  without captions, `<marquee>`/`<blink>`, and non-descriptive link text.
+  without captions, `<marquee>`/`<blink>`, non-descriptive link text, invalid
+  `lang`/`dir`/`scope` values, empty `<label>`, invalid boolean ARIA values,
+  timed meta refresh, `<summary>` outside `<details>`, and `<abbr>` without a
+  title (WCAG 3.1.4, Level AAA). Statically decidable A/AA/AAA markup criteria are
+  covered; the rest keeps its honest "needs runtime check" note.
   `--only` /
   `--exclude` accept a trailing `*` wildcard (e.g. `wcag.*`), and `--list-rules`
   groups rules by prefix and describes each one. Rule descriptions also enrich the

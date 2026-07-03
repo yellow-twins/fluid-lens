@@ -13,8 +13,16 @@ use YellowTwins\FluidLens\Rule\Markup\PictureSourceSrcsetRule;
 use YellowTwins\FluidLens\Rule\Wcag\AriaAttributeRule;
 use YellowTwins\FluidLens\Rule\Wcag\AriaExpandedRoleRule;
 use YellowTwins\FluidLens\Rule\Wcag\AriaHiddenFocusableRule;
+use YellowTwins\FluidLens\Rule\Wcag\AbbrTitleRule;
 use YellowTwins\FluidLens\Rule\Wcag\AltFilenameRule;
+use YellowTwins\FluidLens\Rule\Wcag\AriaBooleanRule;
 use YellowTwins\FluidLens\Rule\Wcag\AriaRoleRule;
+use YellowTwins\FluidLens\Rule\Wcag\DirValidRule;
+use YellowTwins\FluidLens\Rule\Wcag\LabelEmptyRule;
+use YellowTwins\FluidLens\Rule\Wcag\LangValidRule;
+use YellowTwins\FluidLens\Rule\Wcag\MetaRefreshRule;
+use YellowTwins\FluidLens\Rule\Wcag\ScopeValueRule;
+use YellowTwins\FluidLens\Rule\Wcag\SummaryDetailsRule;
 use YellowTwins\FluidLens\Rule\Wcag\ButtonNameRule;
 use YellowTwins\FluidLens\Rule\Wcag\DuplicateIdRule;
 use YellowTwins\FluidLens\Rule\Wcag\EmptyHeadingRule;
@@ -83,6 +91,14 @@ final class RuleSet
             new RoleRequiredAttrRule(),
             new VideoCaptionsRule(),
             new MarqueeBlinkRule(),
+            new LangValidRule(),
+            new LabelEmptyRule(),
+            new AriaBooleanRule(),
+            new DirValidRule(),
+            new MetaRefreshRule(),
+            new SummaryDetailsRule(),
+            new ScopeValueRule(),
+            new AbbrTitleRule(),
             new InlineStyleRule(),
             new InlineSvgRule(),
             new PreferFluidImageRule(),
