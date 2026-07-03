@@ -32,4 +32,23 @@ final class RuleSelectorTest extends TestCase
     {
         self::assertCount(count(RuleSet::default()), (new RuleSelector())->select(RuleSet::default(), [], []));
     }
+
+    public function testWildcardOnlySelectsByPrefix(): void
+    {
+        $selected = (new RuleSelector())->select(RuleSet::default(), ['wcag.*'], []);
+
+        self::assertNotEmpty($selected);
+        foreach ($selected as $rule) {
+            self::assertStringStartsWith('wcag.', $rule->name());
+        }
+    }
+
+    public function testWildcardExcludeRemovesByPrefix(): void
+    {
+        $selected = (new RuleSelector())->select(RuleSet::default(), [], ['style.*', 'partial.*', 'image.*', 'link.*']);
+
+        foreach ($selected as $rule) {
+            self::assertStringStartsWith('wcag.', $rule->name());
+        }
+    }
 }

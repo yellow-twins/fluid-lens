@@ -116,12 +116,13 @@ advisory). What it checks statically:
 | `image.prefer-fluid` — raw `<img>` instead of `<f:image>` | notice | — |
 | `link.target-blank-rel` — `target="_blank"` without `rel="noopener"` | notice | — |
 
-Pick which rules run with `--only` / `--exclude`, or see them all with
-`--list-rules`:
+Pick which rules run with `--only` / `--exclude`, or see them all (grouped) with
+`--list-rules`. A trailing `*` matches a prefix:
 
 ```bash
 vendor/bin/fluid-lens lint --list-rules
-vendor/bin/fluid-lens lint path/ --exclude=style.inline,partial.inline-svg   # errors & warnings only
+vendor/bin/fluid-lens lint path/ --only=wcag.*                 # accessibility only
+vendor/bin/fluid-lens lint path/ --exclude=style.*,partial.*   # skip advisory notices
 vendor/bin/fluid-lens lint path/ --only=wcag.img-alt,wcag.button-name
 ```
 

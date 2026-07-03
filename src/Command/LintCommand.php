@@ -120,10 +120,21 @@ final class LintCommand extends Command
 
     private function listRules(SymfonyStyle $io): int
     {
-        $io->title('Available rules');
+        $groups = [];
         foreach (RuleSet::default() as $rule) {
-            $io->writeln(' ' . $rule->name());
+            $groups[explode('.', $rule->name())[0]][] = $rule->name();
         }
+
+        $io->title('Available rules');
+        foreach ($groups as $group => $names) {
+            $io->writeln(sprintf(' <options=bold>%s</>', $group));
+            foreach ($names as $name) {
+                $io->writeln('   ' . $name);
+            }
+            $io->newLine();
+        }
+
+        $io->writeln(' Filter with --only / --exclude; a trailing * matches a prefix (e.g. wcag.*).');
 
         return Command::SUCCESS;
     }
