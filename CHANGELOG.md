@@ -33,10 +33,12 @@ All notable changes to this project are documented here. The format is based on
   groups rules by prefix and describes each one. Rule descriptions also enrich the
   SARIF output (`shortDescription`). `--fail-on=error|warning|notice|never`
   (also `lint.failOn` in config) controls the severity that fails the run.
-- `sliders` command: reports which slider/carousel libraries (Swiper, Slick,
-  Glide, Splide, Owl, Flickity, Keen, Tiny Slider) the templates use, and fails
-  when a project mixes several. Duplicated slider markup is already covered by
-  `analyze`/`similar`.
+- `consistency` command: project-wide checks that fail when competing
+  implementations are mixed. Built-in checks: `sliders` (Swiper, Slick, Glide,
+  Splide, Owl, Flickity, Keen, Tiny Slider) and `icons` (Font Awesome, Bootstrap
+  Icons, Material, Ionicons, Feather, Remix, Boxicons), selectable with
+  `--only` / `--exclude` (wildcards allowed) and listed with `--list-checks`.
+  Duplicated markup is covered by `analyze`/`similar`.
 - `parse` command: dump a single template's structural node tree.
 - Inline suppression via `{# @fluidlint-ignore #}` markers.
 - PHPStan-style baseline (`--generate-baseline` / `--baseline`) for adopting the

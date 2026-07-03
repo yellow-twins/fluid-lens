@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace YellowTwins\FluidLens\Consistency;
 
 /**
- * One slider library detected in the project, and the files that use it.
+ * One detected variant (a slider library, an icon set, …) and the files using it.
  */
-final class SliderUsage
+final class Usage
 {
     /**
      * @param list<string> $files
      */
     public function __construct(
-        public readonly string $library,
+        public readonly string $label,
         public readonly array $files,
     ) {
     }

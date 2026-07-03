@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace YellowTwins\FluidLens\Rule;
 
+use YellowTwins\FluidLens\Support\Wildcard;
+
 /**
  * Narrows a set of rules to the ones the user asked for.
  *
@@ -24,36 +26,13 @@ final class RuleSelector
     {
         return array_values(array_filter(
             $rules,
-            function (Rule $rule) use ($only, $exclude): bool {
-                if ($only !== [] && !$this->matchesAny($rule->name(), $only)) {
+            static function (Rule $rule) use ($only, $exclude): bool {
+                if ($only !== [] && !Wildcard::matchesAny($rule->name(), $only)) {
                     return false;
                 }
 
-                return !$this->matchesAny($rule->name(), $exclude);
+                return !Wildcard::matchesAny($rule->name(), $exclude);
             },
         ));
-    }
-
-    /**
-     * @param list<string> $patterns
-     */
-    private function matchesAny(string $name, array $patterns): bool
-    {
-        foreach ($patterns as $pattern) {
-            if ($this->matches($name, $pattern)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private function matches(string $name, string $pattern): bool
-    {
-        if (str_ends_with($pattern, '*')) {
-            return str_starts_with($name, substr($pattern, 0, -1));
-        }
-
-        return $name === $pattern;
     }
 }

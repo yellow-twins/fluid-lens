@@ -80,19 +80,27 @@ vendor/bin/fluid-lens similar path/to/Templates/ --threshold=0.85 --json
 Similarity is measured with pq-gram distance, a fast approximation of tree edit
 distance. Structures are clustered by transitive similarity above the threshold.
 
-### Check slider/carousel library consistency
+### Check project-wide consistency
 
-Sliders are a common source of drift: the same slider gets copied into several
-templates, and over time different libraries creep in. fluid-lens covers both:
+Over time projects drift: the same slider gets copied around, and different
+libraries or icon sets creep in. The `consistency` command runs a set of
+project-wide checks and fails when competing implementations are mixed:
 
 ```bash
-vendor/bin/fluid-lens sliders packages/
+vendor/bin/fluid-lens consistency packages/
+vendor/bin/fluid-lens consistency packages/ --only=sliders     # just one check
+vendor/bin/fluid-lens consistency --list-checks
 ```
 
-`sliders` reports which known libraries (Swiper, Slick, Glide, Splide, Owl,
-Flickity, Keen, Tiny Slider) are used and where, and exits non-zero if more than
-one is mixed into the project. Duplicated slider *markup* is caught by `analyze`
-and `similar` — extract it into one shared Partial.
+Built-in checks (selectable with `--only` / `--exclude`, wildcards allowed):
+
+| Check | Detects |
+|-------|---------|
+| `sliders` | Slider/carousel libraries (Swiper, Slick, Glide, Splide, Owl, Flickity, Keen, Tiny Slider) |
+| `icons`   | Icon sets (Font Awesome, Bootstrap Icons, Material, Ionicons, Feather, Remix, Boxicons) |
+
+Duplicated *markup* (e.g. the same slider copied into five templates) is caught
+by `analyze` and `similar` — extract it into one shared Partial.
 
 ### Check accessibility (WCAG) and best practices
 
@@ -253,7 +261,7 @@ given, fall back to the configured `paths`.
 | `analyze` | Find exact duplicated structures          | `--min-elements`, `--min-occurrences`, `--baseline`, `--generate-baseline`, `--json` |
 | `similar` | Find near-duplicate structures            | `--threshold`, `--min-elements`, `--json` |
 | `lint`    | Check accessibility (WCAG) & best practices | `--only`, `--exclude`, `--fail-on`, `--baseline`, `--generate-baseline`, `--list-rules`, `--json`, `--sarif` |
-| `sliders` | Report slider/carousel libraries, flag a mix | `--json` |
+| `consistency` | Flag mixed slider/icon/other implementations | `--only`, `--exclude`, `--list-checks`, `--json` |
 | `parse`   | Dump one template's structural node tree  | `--json` |
 
 ### Exit codes
