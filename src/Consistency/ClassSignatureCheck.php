@@ -10,9 +10,10 @@ use YellowTwins\FluidLens\Template\ParsedTemplate;
 
 /**
  * Base for consistency checks that recognise competing libraries by their
- * signature CSS classes. Subclasses provide the catalog of variant => class
- * roots; a class token matches a root as a whole token or a `root-`/`root__`
- * prefix.
+ * signature CSS classes. Subclasses provide the catalog of variant => signatures;
+ * a signature is either a class root (matched as a whole token or a `root-`/
+ * `root__` prefix) or a regular expression (any signature starting with `/`),
+ * which lets pattern-based frameworks like Tailwind be recognised too.
  */
 abstract class ClassSignatureCheck implements ConsistencyCheck
 {
@@ -61,15 +62,26 @@ abstract class ClassSignatureCheck implements ConsistencyCheck
 
     private function match(string $token): ?string
     {
-        foreach ($this->catalog() as $label => $roots) {
-            foreach ($roots as $root) {
-                if ($token === $root || str_starts_with($token, $root . '-') || str_starts_with($token, $root . '__')) {
+        foreach ($this->catalog() as $label => $signatures) {
+            foreach ($signatures as $signature) {
+                if ($this->matchesSignature($token, $signature)) {
                     return $label;
                 }
             }
         }
 
         return null;
+    }
+
+    private function matchesSignature(string $token, string $signature): bool
+    {
+        if (str_starts_with($signature, '/')) {
+            return preg_match($signature, $token) === 1;
+        }
+
+        return $token === $signature
+            || str_starts_with($token, $signature . '-')
+            || str_starts_with($token, $signature . '__');
     }
 
     /**

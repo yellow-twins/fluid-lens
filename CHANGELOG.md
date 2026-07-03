@@ -36,7 +36,9 @@ All notable changes to this project are documented here. The format is based on
 - `consistency` command: project-wide checks that fail when competing
   implementations are mixed. Built-in checks: `sliders` (Swiper, Slick, Glide,
   Splide, Owl, Flickity, Keen, Tiny Slider) and `icons` (Font Awesome, Bootstrap
-  Icons, Material, Ionicons, Feather, Remix, Boxicons), selectable with
+  Icons, Material, Ionicons, Feather, Remix, Boxicons) and `css` (Bootstrap,
+  Tailwind, Bulma, Foundation, via distinctive signatures — including regex
+  signatures for Tailwind's variant prefixes and colour scale), selectable with
   `--only` / `--exclude` (wildcards allowed) and listed with `--list-checks`.
   Duplicated markup is covered by `analyze`/`similar`.
 - `parse` command: dump a single template's structural node tree.

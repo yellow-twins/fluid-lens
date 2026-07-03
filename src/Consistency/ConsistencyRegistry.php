@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace YellowTwins\FluidLens\Consistency;
 
+use YellowTwins\FluidLens\Consistency\Check\CssFrameworkCheck;
 use YellowTwins\FluidLens\Consistency\Check\IconSetCheck;
 use YellowTwins\FluidLens\Consistency\Check\SliderLibraryCheck;
 use YellowTwins\FluidLens\Support\Wildcard;
@@ -22,6 +23,7 @@ final class ConsistencyRegistry
         return [
             new SliderLibraryCheck(),
             new IconSetCheck(),
+            new CssFrameworkCheck(),
         ];
     }
 

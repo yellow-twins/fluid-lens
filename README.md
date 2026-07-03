@@ -98,6 +98,7 @@ Built-in checks (selectable with `--only` / `--exclude`, wildcards allowed):
 |-------|---------|
 | `sliders` | Slider/carousel libraries (Swiper, Slick, Glide, Splide, Owl, Flickity, Keen, Tiny Slider) |
 | `icons`   | Icon sets (Font Awesome, Bootstrap Icons, Material, Ionicons, Feather, Remix, Boxicons) |
+| `css`     | CSS frameworks (Bootstrap, Tailwind, Bulma, Foundation) via distinctive signatures |
 
 Duplicated *markup* (e.g. the same slider copied into five templates) is caught
 by `analyze` and `similar` — extract it into one shared Partial.

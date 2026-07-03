@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace YellowTwins\FluidLens\Tests\Consistency;
 
 use PHPUnit\Framework\TestCase;
+use YellowTwins\FluidLens\Consistency\Check\CssFrameworkCheck;
 use YellowTwins\FluidLens\Consistency\Check\IconSetCheck;
 use YellowTwins\FluidLens\Consistency\Check\SliderLibraryCheck;
 use YellowTwins\FluidLens\Consistency\ConsistencyRegistry;
@@ -36,6 +37,29 @@ final class ConsistencyCheckTest extends TestCase
         $labels = array_map(static fn ($usage): string => $usage->label, $result->usages);
         self::assertContains('Font Awesome', $labels);
         self::assertContains('Bootstrap Icons', $labels);
+    }
+
+    public function testCssCheckDetectsBootstrapAndTailwindMix(): void
+    {
+        $result = (new CssFrameworkCheck())->analyze([
+            $this->template('a.html', '<div class="row"><div class="col-md-6">x</div></div>'),
+            $this->template('b.html', '<div class="md:flex bg-blue-500">y</div>'),
+        ]);
+
+        self::assertTrue($result->isInconsistent());
+        $labels = array_map(static fn ($usage): string => $usage->label, $result->usages);
+        self::assertContains('Bootstrap', $labels);
+        self::assertContains('Tailwind', $labels);
+    }
+
+    public function testCssCheckIgnoresGenericUtilityClasses(): void
+    {
+        // "flex", "text-center", "container" are shared/generic — not a signal.
+        $result = (new CssFrameworkCheck())->analyze([
+            $this->template('a.html', '<div class="flex text-center container">x</div>'),
+        ]);
+
+        self::assertTrue($result->isEmpty());
     }
 
     public function testSelectByNameAndWildcard(): void
