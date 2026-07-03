@@ -5,6 +5,7 @@
     <file>bin/fluid-lens</file>
     <file>src</file>
     <file>tests</file>
+    <file>Configuration</file>
 
     <arg name="colors"/>
     <arg value="sp"/>

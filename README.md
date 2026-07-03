@@ -12,10 +12,10 @@ optional TYPO3 command wrapper.
 
 ## Status
 
-🚧 **Early development — Milestone 1 (parser foundation).**
-
-Right now the tool can parse a Fluid template into a structural node tree and dump it,
-which is the foundation the clone detector and sniffs build on. See the roadmap below.
+**Clone detection is complete and usable.** fluid-lens finds both exact duplicated
+structures and near-duplicates across your templates, with inline suppression and a
+baseline for adopting it on an existing project. Accessibility/best-practice *sniffs*
+(including a WCAG module) are the next layer — see the roadmap.
 
 ## Why
 
@@ -45,7 +45,7 @@ composer install
 
 ## Usage
 
-### Analyse for duplicated structures (Milestone 2)
+### Analyse for duplicated structures
 
 Scan a file or a whole directory for markup that repeats and should become a Partial:
 
@@ -62,7 +62,7 @@ vendor/bin/fluid-lens analyze path/to/Templates/ --json
 
 The command exits non-zero when duplicates are found, so it can gate a pipeline.
 
-### Find near-duplicate structures (Milestone 3)
+### Find near-duplicate structures
 
 Find blocks that are *almost* identical — differing by a node or an attribute —
 and could share one Partial with the differences passed as arguments:
@@ -97,14 +97,35 @@ vendor/bin/fluid-lens analyze path/to/Templates/ --generate-baseline
 vendor/bin/fluid-lens analyze path/to/Templates/ --baseline=fluid-lens-baseline.json
 ```
 
-### Parse a single template (Milestone 1)
+### Parse a single template
 
-Dump the structural tree the analyzer sees:
+Dump the structural tree the analyzer sees — handy for understanding a finding:
 
 ```bash
 vendor/bin/fluid-lens parse path/to/Template.html
 vendor/bin/fluid-lens parse path/to/Template.html --json
 ```
+
+## Command reference
+
+| Command   | Purpose                                   | Key options |
+|-----------|-------------------------------------------|-------------|
+| `analyze` | Find exact duplicated structures          | `--min-elements`, `--min-occurrences`, `--baseline`, `--generate-baseline`, `--json` |
+| `similar` | Find near-duplicate structures            | `--threshold`, `--min-elements`, `--json` |
+| `parse`   | Dump one template's structural node tree  | `--json` |
+
+### Exit codes
+
+- `0` — no findings (or all findings covered by the baseline)
+- `1` — findings were reported, or the path contained no templates
+
+This lets any command gate a CI pipeline: a clean run passes, new duplication fails.
+
+## Using it in TYPO3
+
+The standalone binary works inside any TYPO3 project out of the box, and native
+`vendor/bin/typo3 fluidlens:*` commands are available as an option. See
+[docs/typo3.md](docs/typo3.md).
 
 ## How it works
 
@@ -138,9 +159,10 @@ divergence score; the `similar` command reports each cluster of variants.
 `{# @fluidlint-ignore #}` inline suppression and a PHPStan-style baseline
 (`--generate-baseline` / `--baseline`) for adopting the tool on existing projects.
 
-**Milestone 5 — TYPO3 command wrapper + docs.**
+**Milestone 5 — TYPO3 command wrapper + docs** ✅
+Native `fluidlens:*` TYPO3 commands (`Configuration/Commands.php`) and full docs.
 
-**Later — Sniffs** (a dedicated, must-have layer):
+**Next — Sniffs** (a dedicated, must-have layer):
 opinionated rules for images/`<picture>`, inline SVG, accordions/tiles/navigations,
 and a **WCAG (up to AAA) accessibility module** that statically flags markup-level
 violations (missing `alt`, unlabelled controls, heading jumps, invalid ARIA, …).
