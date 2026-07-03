@@ -75,6 +75,28 @@ vendor/bin/fluid-lens similar path/to/Templates/ --threshold=0.85 --json
 Similarity is measured with pq-gram distance, a fast approximation of tree edit
 distance. Structures are clustered by transitive similarity above the threshold.
 
+### Suppress a block inline
+
+Mark a block that should intentionally stay inline with a comment on the line
+before it — it is then excluded from every analysis:
+
+```html
+{# @fluidlint-ignore this one really is a one-off #}
+<div class="special-case">…</div>
+```
+
+### Adopt on an existing project with a baseline
+
+Record all current duplication once, then only see *new* duplication from then on:
+
+```bash
+# Freeze what exists today
+vendor/bin/fluid-lens analyze path/to/Templates/ --generate-baseline
+
+# Later runs report only duplication that is new or has grown
+vendor/bin/fluid-lens analyze path/to/Templates/ --baseline=fluid-lens-baseline.json
+```
+
 ### Parse a single template (Milestone 1)
 
 Dump the structural tree the analyzer sees:
@@ -112,9 +134,9 @@ structural preview, suppressing groups fully contained in a larger one.
 pq-gram similarity catches structures that differ only slightly, clustered by a
 divergence score; the `similar` command reports each cluster of variants.
 
-**Milestone 4 — Thresholds, ignores, baseline**
-Configuration, `{# @fluidlint-ignore #}` inline suppression, and a PHPStan-style
-baseline for adopting the tool on existing projects.
+**Milestone 4 — Ignores & baseline** ✅ *(current)*
+`{# @fluidlint-ignore #}` inline suppression and a PHPStan-style baseline
+(`--generate-baseline` / `--baseline`) for adopting the tool on existing projects.
 
 **Milestone 5 — TYPO3 command wrapper + docs.**
 

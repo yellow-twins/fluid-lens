@@ -11,6 +11,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use YellowTwins\FluidLens\Baseline\Baseline;
 use YellowTwins\FluidLens\Detector\CloneDetector;
 use YellowTwins\FluidLens\Report\ConsoleCloneReporter;
 use YellowTwins\FluidLens\Report\JsonCloneReporter;
@@ -29,6 +30,8 @@ use YellowTwins\FluidLens\Template\TemplateCollector;
 )]
 final class AnalyzeCommand extends Command
 {
+    private const DEFAULT_BASELINE = 'fluid-lens-baseline.json';
+
     public function __construct(
         private readonly TemplateCollector $collector = new TemplateCollector(),
     ) {
@@ -53,6 +56,19 @@ final class AnalyzeCommand extends Command
                 InputOption::VALUE_REQUIRED,
                 'Minimum times a structure must repeat to be reported.',
                 '2',
+            )
+            ->addOption(
+                'baseline',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Suppress duplicates recorded in this baseline file.',
+            )
+            ->addOption(
+                'generate-baseline',
+                null,
+                InputOption::VALUE_OPTIONAL,
+                'Write the current duplicates to a baseline file and exit.',
+                false,
             );
     }
 
@@ -69,11 +85,13 @@ final class AnalyzeCommand extends Command
 
         $this->warnAboutSkipped($io, $collection);
 
-        $detector = new CloneDetector(
-            max(1, (int) $input->getOption('min-elements')),
-            max(2, (int) $input->getOption('min-occurrences')),
-        );
-        $groups = $detector->detect($collection->templates);
+        $groups = $this->createDetector($input)->detect($collection->templates);
+
+        if ($this->isGeneratingBaseline($input)) {
+            return $this->writeBaseline($io, $input, $groups);
+        }
+
+        $groups = $this->applyBaseline($io, $input, $groups);
         $fileCount = count($collection->templates);
 
         if ($input->getOption('json') === true) {
@@ -83,6 +101,59 @@ final class AnalyzeCommand extends Command
         }
 
         return $groups === [] ? Command::SUCCESS : Command::FAILURE;
+    }
+
+    private function createDetector(InputInterface $input): CloneDetector
+    {
+        return new CloneDetector(
+            max(1, (int) $input->getOption('min-elements')),
+            max(2, (int) $input->getOption('min-occurrences')),
+        );
+    }
+
+    private function isGeneratingBaseline(InputInterface $input): bool
+    {
+        return $input->getOption('generate-baseline') !== false;
+    }
+
+    /**
+     * @param list<\YellowTwins\FluidLens\Detector\CloneGroup> $groups
+     */
+    private function writeBaseline(SymfonyStyle $io, InputInterface $input, array $groups): int
+    {
+        $value = $input->getOption('generate-baseline');
+        $path = is_string($value) && $value !== '' ? $value : self::DEFAULT_BASELINE;
+
+        if (file_put_contents($path, Baseline::fromGroups($groups)->toJson()) === false) {
+            $io->error(sprintf('Could not write baseline to: %s', $path));
+
+            return Command::FAILURE;
+        }
+
+        $io->success(sprintf('Wrote baseline with %d structure(s) to %s.', count($groups), $path));
+
+        return Command::SUCCESS;
+    }
+
+    /**
+     * @param list<\YellowTwins\FluidLens\Detector\CloneGroup> $groups
+     *
+     * @return list<\YellowTwins\FluidLens\Detector\CloneGroup>
+     */
+    private function applyBaseline(SymfonyStyle $io, InputInterface $input, array $groups): array
+    {
+        $path = $input->getOption('baseline');
+        if (!is_string($path)) {
+            return $groups;
+        }
+
+        if (!is_file($path)) {
+            $io->warning(sprintf('Baseline file not found, reporting everything: %s', $path));
+
+            return $groups;
+        }
+
+        return Baseline::fromJson((string) file_get_contents($path))->filter($groups);
     }
 
     private function warnAboutSkipped(SymfonyStyle $io, TemplateCollection $collection): void
