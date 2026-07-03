@@ -26,8 +26,12 @@ All notable changes to this project are documented here. The format is based on
   of `<f:image>`, `target="_blank"` without `rel="noopener"`, and broken
   `<picture>` markup (missing `<img>` fallback, `<source>` without `srcset`),
   broken tabs (`role="tab"` without `aria-selected`, `role="tablist"` without a
-  tab), broken accordions (`aria-expanded` on a non-interactive element), and
-  `<label for>` pointing at a missing id (conservative, skips Fluid forms).
+  tab), broken accordions (`aria-expanded` on a non-interactive element),
+  `<label for>` pointing at a missing id (conservative, skips Fluid forms),
+  image buttons without alt, alt text that is just a file name, nested
+  interactive controls, `<fieldset>` without `<legend>`, non-`<li>` list
+  children, empty `<th>`, ARIA roles missing their required state, `<video>`
+  without captions, `<marquee>`/`<blink>`, and non-descriptive link text.
   `--only` /
   `--exclude` accept a trailing `*` wildcard (e.g. `wcag.*`), and `--list-rules`
   groups rules by prefix and describes each one. Rule descriptions also enrich the

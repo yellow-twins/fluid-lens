@@ -145,6 +145,16 @@ What it checks statically:
 | `wcag.iframe-title` — `<iframe>` without a `title` | warning | 4.1.2 (A) |
 | `wcag.media-autoplay` — audio/unmuted video that autoplays sound | warning | 1.4.2 (A) |
 | `wcag.heading-order` — heading levels skipped | warning | 1.3.1 (A) |
+| `wcag.input-image-alt` — `<input type="image">` without alt | error | 1.1.1 (A) |
+| `wcag.alt-filename` — alt text that is just a file name | warning | 1.1.1 (A) |
+| `wcag.nested-interactive` — a control nested inside another | warning | 4.1.2 (A) |
+| `wcag.fieldset-legend` — `<fieldset>` without a `<legend>` | warning | 1.3.1 (A) |
+| `wcag.list-structure` — `<ul>`/`<ol>` with a non-`<li>` child | warning | 1.3.1 (A) |
+| `wcag.th-empty` — empty `<th>` header cell | warning | 1.3.1 (A) |
+| `wcag.role-required-attr` — ARIA role missing its required state | warning | 4.1.2 (A) |
+| `wcag.video-captions` — `<video>` without a captions track | warning | 1.2.2 (A) |
+| `wcag.marquee-blink` — `<marquee>`/`<blink>` moving content | warning | 2.2.2 (A) |
+| `wcag.link-generic-text` — non-descriptive link text ("read more") | notice | 2.4.4 (A) |
 | `markup.picture-img` — `<picture>` without an `<img>` fallback | warning | — |
 | `markup.source-srcset` — `<source>` in `<picture>` without `srcset` | warning | — |
 | `style.inline` — inline `style` attribute | notice | — |
