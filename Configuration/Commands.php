@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use YellowTwins\FluidLens\Command\AnalyzeCommand;
+use YellowTwins\FluidLens\Command\LintCommand;
 use YellowTwins\FluidLens\Command\SimilarCommand;
 
 // Optional TYPO3 integration.
@@ -20,4 +21,5 @@ use YellowTwins\FluidLens\Command\SimilarCommand;
 return [
     'fluidlens:analyze' => ['class' => AnalyzeCommand::class],
     'fluidlens:similar' => ['class' => SimilarCommand::class],
+    'fluidlens:lint' => ['class' => LintCommand::class],
 ];

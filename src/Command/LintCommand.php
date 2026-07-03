@@ -1,0 +1,91 @@
+<?php
+
+declare(strict_types=1);
+
+namespace YellowTwins\FluidLens\Command;
+
+use Symfony\Component\Console\Attribute\AsCommand;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
+use YellowTwins\FluidLens\Report\ConsoleLintReporter;
+use YellowTwins\FluidLens\Report\JsonLintReporter;
+use YellowTwins\FluidLens\Rule\Finding;
+use YellowTwins\FluidLens\Rule\Linter;
+use YellowTwins\FluidLens\Template\TemplateCollection;
+use YellowTwins\FluidLens\Template\TemplateCollector;
+
+/**
+ * Lints Fluid templates for accessibility (WCAG) and best-practice problems.
+ *
+ * Exits non-zero when any error or warning is found, so it can gate CI; notices
+ * are advisory and never fail the build.
+ */
+#[AsCommand(
+    name: 'lint',
+    description: 'Check Fluid templates for accessibility (WCAG) and best-practice issues.',
+)]
+final class LintCommand extends Command
+{
+    public function __construct(
+        private readonly TemplateCollector $collector = new TemplateCollector(),
+    ) {
+        parent::__construct();
+    }
+
+    protected function configure(): void
+    {
+        $this
+            ->addArgument('path', InputArgument::REQUIRED, 'A template file or a directory to scan recursively.')
+            ->addOption('json', null, InputOption::VALUE_NONE, 'Output findings as JSON instead of a report.');
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output): int
+    {
+        $io = new SymfonyStyle($input, $output);
+        $collection = $this->collector->collect((string) $input->getArgument('path'));
+
+        if ($collection->isEmpty()) {
+            $io->error(sprintf('No Fluid templates found at: %s', $input->getArgument('path')));
+
+            return Command::FAILURE;
+        }
+
+        $this->warnAboutSkipped($io, $collection);
+
+        $findings = Linter::withDefaultRules()->lint($collection->templates);
+        $fileCount = count($collection->templates);
+
+        if ($input->getOption('json') === true) {
+            $output->writeln((new JsonLintReporter())->render($findings, $fileCount));
+        } else {
+            (new ConsoleLintReporter())->report($io, $findings, $fileCount);
+        }
+
+        return $this->hasBuildFailure($findings) ? Command::FAILURE : Command::SUCCESS;
+    }
+
+    /**
+     * @param list<Finding> $findings
+     */
+    private function hasBuildFailure(array $findings): bool
+    {
+        foreach ($findings as $finding) {
+            if ($finding->severity->failsBuild()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function warnAboutSkipped(SymfonyStyle $io, TemplateCollection $collection): void
+    {
+        foreach ($collection->skipped as $skip) {
+            $io->warning(sprintf('Skipped %s: %s', $skip['file'], $skip['reason']));
+        }
+    }
+}

@@ -36,6 +36,9 @@
     },
     "bin": ["bin/fluid-lens"],
     "scripts": {
+        "analyze": "@php bin/fluid-lens analyze",
+        "similar": "@php bin/fluid-lens similar",
+        "lint": "@php bin/fluid-lens lint",
         "cs": "phpcs",
         "cs:fix": "phpcbf",
         "stan": "phpstan analyse",

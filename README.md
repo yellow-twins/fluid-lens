@@ -12,10 +12,10 @@ optional TYPO3 command wrapper.
 
 ## Status
 
-**Clone detection is complete and usable.** fluid-lens finds both exact duplicated
-structures and near-duplicates across your templates, with inline suppression and a
-baseline for adopting it on an existing project. Accessibility/best-practice *sniffs*
-(including a WCAG module) are the next layer — see the roadmap.
+**Usable today.** fluid-lens finds exact duplicated structures and near-duplicates
+across your templates, and lints them for accessibility (WCAG) and best-practice
+problems — with inline suppression and a baseline for adopting it on an existing
+project. See the roadmap for what's next.
 
 ## Why
 
@@ -75,6 +75,37 @@ vendor/bin/fluid-lens similar path/to/Templates/ --threshold=0.85 --json
 Similarity is measured with pq-gram distance, a fast approximation of tree edit
 distance. Structures are clustered by transitive similarity above the threshold.
 
+### Check accessibility (WCAG) and best practices
+
+Scan templates for accessibility and best-practice problems in seconds, instead
+of opening every page in a browser:
+
+```bash
+vendor/bin/fluid-lens lint path/to/Templates/
+vendor/bin/fluid-lens lint path/to/Templates/ --json
+```
+
+The command exits non-zero when it finds an error or warning (notices are
+advisory). What it checks statically:
+
+| Rule | Severity | WCAG |
+|------|----------|------|
+| `wcag.img-alt` — image without an `alt` attribute | error | 1.1.1 (A) |
+| `wcag.link-name` — link with no discernible text (icon-only) | error | 2.4.4 (A) |
+| `wcag.duplicate-id` — duplicate `id` in one document | error | 4.1.1 (A) |
+| `wcag.form-label` — control with no way to be labelled | warning | 4.1.2 (A) |
+| `wcag.html-lang` — `<html>` without `lang` | warning | 3.1.1 (A) |
+| `wcag.positive-tabindex` — `tabindex` greater than 0 | warning | 2.4.3 (A) |
+| `wcag.table-header` — data table without `<th>` | warning | 1.3.1 (A) |
+| `wcag.heading-order` — heading levels skipped | warning | 1.3.1 (A) |
+| `style.inline` — inline `style` attribute | notice | — |
+| `partial.inline-svg` — inline `<svg>` to extract into an Icon partial | notice | — |
+
+**Honest by design:** criteria that genuinely need a rendered page — colour
+contrast, runtime focus order, reflow — are *not* silently passed. The report
+states plainly that they must be verified with a runtime tool (axe, Lighthouse).
+A static pass is a fast first line of defence, not a replacement for those.
+
 ### Suppress a block inline
 
 Mark a block that should intentionally stay inline with a comment on the line
@@ -106,12 +137,36 @@ vendor/bin/fluid-lens parse path/to/Template.html
 vendor/bin/fluid-lens parse path/to/Template.html --json
 ```
 
+### Running through Composer
+
+You don't have to call the binary directly. In a project that requires
+fluid-lens, add a Composer script referencing the command by name — Composer puts
+`vendor/bin` on the path for scripts:
+
+```json
+{
+    "scripts": {
+        "lint:fluid": "fluid-lens analyze packages/",
+        "lint:fluid-similar": "fluid-lens similar packages/"
+    }
+}
+```
+
+```bash
+composer lint:fluid
+composer exec fluid-lens -- analyze packages/   # ad-hoc, without a script
+```
+
+This repository itself ships `composer analyze`, `composer similar` and
+`composer lint` shortcuts (see `composer.json`), e.g. `composer analyze -- path/`.
+
 ## Command reference
 
 | Command   | Purpose                                   | Key options |
 |-----------|-------------------------------------------|-------------|
 | `analyze` | Find exact duplicated structures          | `--min-elements`, `--min-occurrences`, `--baseline`, `--generate-baseline`, `--json` |
 | `similar` | Find near-duplicate structures            | `--threshold`, `--min-elements`, `--json` |
+| `lint`    | Check accessibility (WCAG) & best practices | `--json` |
 | `parse`   | Dump one template's structural node tree  | `--json` |
 
 ### Exit codes
@@ -162,12 +217,14 @@ divergence score; the `similar` command reports each cluster of variants.
 **Milestone 5 — TYPO3 command wrapper + docs** ✅
 Native `fluidlens:*` TYPO3 commands (`Configuration/Commands.php`) and full docs.
 
-**Next — Sniffs** (a dedicated, must-have layer):
-opinionated rules for images/`<picture>`, inline SVG, accordions/tiles/navigations,
-and a **WCAG (up to AAA) accessibility module** that statically flags markup-level
-violations (missing `alt`, unlabelled controls, heading jumps, invalid ARIA, …).
-Criteria that cannot be decided statically (colour contrast, runtime focus order) are
-reported as *needs runtime check* rather than silently passed.
+**Sniffs — accessibility & best practices** ✅
+The `lint` command ships a WCAG markup module (missing `alt`, icon-only links,
+duplicate ids, unlabelled controls, heading jumps, tables without headers, …) plus
+best-practice sniffs, with criteria that need a rendered page reported as
+*needs runtime check* rather than silently passed.
+
+**Next — more sniffs**: accordions/tiles/navigation component patterns, `<picture>`
+best practice, expanded ARIA validation.
 
 **Later — Auto-fix**: generate the suggested Partial and the `<f:render>` replacement.
 
