@@ -25,7 +25,8 @@ All notable changes to this project are documented here. The format is based on
   media, empty headings, zoom-blocking viewport meta tags, raw `<img>` in place
   of `<f:image>`, and `target="_blank"` without `rel="noopener"`. `--only` /
   `--exclude` accept a trailing `*` wildcard (e.g. `wcag.*`), and `--list-rules`
-  groups rules by prefix.
+  groups rules by prefix and describes each one. Rule descriptions also enrich the
+  SARIF output (`shortDescription`).
 - `parse` command: dump a single template's structural node tree.
 - Inline suppression via `{# @fluidlint-ignore #}` markers.
 - PHPStan-style baseline (`--generate-baseline` / `--baseline`) for adopting the

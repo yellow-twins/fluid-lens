@@ -19,6 +19,7 @@ use YellowTwins\FluidLens\Report\SarifLintReporter;
 use YellowTwins\FluidLens\Rule\Finding;
 use YellowTwins\FluidLens\Rule\Linter;
 use YellowTwins\FluidLens\Rule\Rule;
+use YellowTwins\FluidLens\Rule\RuleCatalog;
 use YellowTwins\FluidLens\Rule\RuleSelector;
 use YellowTwins\FluidLens\Rule\RuleSet;
 use YellowTwins\FluidLens\Template\TemplateCollector;
@@ -129,7 +130,7 @@ final class LintCommand extends Command
         foreach ($groups as $group => $names) {
             $io->writeln(sprintf(' <options=bold>%s</>', $group));
             foreach ($names as $name) {
-                $io->writeln('   ' . $name);
+                $io->writeln(sprintf('   %-28s <fg=gray>%s</>', $name, RuleCatalog::describe($name) ?? ''));
             }
             $io->newLine();
         }

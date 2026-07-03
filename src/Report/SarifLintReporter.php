@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace YellowTwins\FluidLens\Report;
 
 use YellowTwins\FluidLens\Rule\Finding;
+use YellowTwins\FluidLens\Rule\RuleCatalog;
 use YellowTwins\FluidLens\Rule\Severity;
 
 /**
@@ -61,7 +62,17 @@ final class SarifLintReporter
     {
         $rules = [];
         foreach ($findings as $finding) {
-            $rules[$finding->rule] ??= ['id' => $finding->rule, 'name' => $finding->rule];
+            if (isset($rules[$finding->rule])) {
+                continue;
+            }
+
+            $rule = ['id' => $finding->rule, 'name' => $finding->rule];
+            $description = RuleCatalog::describe($finding->rule);
+            if ($description !== null) {
+                $rule['shortDescription'] = ['text' => $description];
+            }
+
+            $rules[$finding->rule] = $rule;
         }
 
         return array_values($rules);
