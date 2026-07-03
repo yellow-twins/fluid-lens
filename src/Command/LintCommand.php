@@ -11,6 +11,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use YellowTwins\FluidLens\Baseline\LintBaseline;
 use YellowTwins\FluidLens\Config\Config;
 use YellowTwins\FluidLens\Config\OptionResolver;
 use YellowTwins\FluidLens\Report\ConsoleLintReporter;
@@ -39,6 +40,8 @@ final class LintCommand extends Command
 {
     use ResolvesConfig;
 
+    private const DEFAULT_BASELINE = 'fluid-lens-lint-baseline.json';
+
     public function __construct(
         private readonly TemplateCollector $collector = new TemplateCollector(),
         private readonly OptionResolver $options = new OptionResolver(),
@@ -56,6 +59,14 @@ final class LintCommand extends Command
             ->addOption('only', null, InputOption::VALUE_REQUIRED, 'Run only these rules (comma-separated names).')
             ->addOption('exclude', null, InputOption::VALUE_REQUIRED, 'Skip these rules (comma-separated names).')
             ->addOption('fail-on', null, InputOption::VALUE_REQUIRED, 'Fail on: error, warning, notice or never.')
+            ->addOption('baseline', null, InputOption::VALUE_REQUIRED, 'Suppress findings listed in this baseline.')
+            ->addOption(
+                'generate-baseline',
+                null,
+                InputOption::VALUE_OPTIONAL,
+                'Write the current findings to a baseline file and exit.',
+                false,
+            )
             ->addOption('list-rules', null, InputOption::VALUE_NONE, 'List the available rules and exit.');
     }
 
@@ -90,6 +101,12 @@ final class LintCommand extends Command
 
         $findings = (new Linter($this->selectRules($input, $config)))->lint($collection->templates);
         $fileCount = count($collection->templates);
+
+        if ($this->isGeneratingBaseline($input)) {
+            return $this->writeBaseline($io, $input, $findings);
+        }
+
+        $findings = $this->applyBaseline($io, $input, $config, $findings);
 
         match ($format) {
             'sarif' => $output->writeln((new SarifLintReporter())->render($findings)),
@@ -142,6 +159,51 @@ final class LintCommand extends Command
         $io->writeln(' Filter with --only / --exclude; a trailing * matches a prefix (e.g. wcag.*).');
 
         return Command::SUCCESS;
+    }
+
+    private function isGeneratingBaseline(InputInterface $input): bool
+    {
+        return $input->getOption('generate-baseline') !== false;
+    }
+
+    /**
+     * @param list<Finding> $findings
+     */
+    private function writeBaseline(SymfonyStyle $io, InputInterface $input, array $findings): int
+    {
+        $value = $input->getOption('generate-baseline');
+        $path = is_string($value) && $value !== '' ? $value : self::DEFAULT_BASELINE;
+
+        if (file_put_contents($path, LintBaseline::fromFindings($findings)->toJson()) === false) {
+            $io->error(sprintf('Could not write baseline to: %s', $path));
+
+            return Command::FAILURE;
+        }
+
+        $io->success(sprintf('Wrote baseline with %d finding(s) to %s.', count($findings), $path));
+
+        return Command::SUCCESS;
+    }
+
+    /**
+     * @param list<Finding> $findings
+     *
+     * @return list<Finding>
+     */
+    private function applyBaseline(SymfonyStyle $io, InputInterface $input, Config $config, array $findings): array
+    {
+        $path = $this->options->string($input, 'baseline', $config->lintBaseline);
+        if ($path === null) {
+            return $findings;
+        }
+
+        if (!is_file($path)) {
+            $io->warning(sprintf('Baseline file not found, reporting everything: %s', $path));
+
+            return $findings;
+        }
+
+        return LintBaseline::fromJson((string) file_get_contents($path))->filter($findings);
     }
 
     /**

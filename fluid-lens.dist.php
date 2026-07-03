@@ -27,6 +27,9 @@ return [
 
         // Severity that makes the run fail: error, warning (default), notice or never.
         // 'failOn' => 'error',
+
+        // Suppress findings recorded in this baseline (see lint --generate-baseline).
+        // 'baseline' => 'fluid-lens-lint-baseline.json',
     ],
 
     'analyze' => [

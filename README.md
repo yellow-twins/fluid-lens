@@ -162,6 +162,14 @@ vendor/bin/fluid-lens analyze path/to/Templates/ --generate-baseline
 vendor/bin/fluid-lens analyze path/to/Templates/ --baseline=fluid-lens-baseline.json
 ```
 
+`lint` has the same baseline (by rule, file and message, ignoring line numbers) —
+freeze today's accessibility debt and only fail on new findings:
+
+```bash
+vendor/bin/fluid-lens lint path/to/Templates/ --generate-baseline
+vendor/bin/fluid-lens lint path/to/Templates/ --baseline=fluid-lens-lint-baseline.json
+```
+
 ### Parse a single template
 
 Dump the structural tree the analyzer sees — handy for understanding a finding:
@@ -224,7 +232,7 @@ configured `paths`.
 |-----------|-------------------------------------------|-------------|
 | `analyze` | Find exact duplicated structures          | `--min-elements`, `--min-occurrences`, `--baseline`, `--generate-baseline`, `--json` |
 | `similar` | Find near-duplicate structures            | `--threshold`, `--min-elements`, `--json` |
-| `lint`    | Check accessibility (WCAG) & best practices | `--only`, `--exclude`, `--fail-on`, `--list-rules`, `--json`, `--sarif` |
+| `lint`    | Check accessibility (WCAG) & best practices | `--only`, `--exclude`, `--fail-on`, `--baseline`, `--generate-baseline`, `--list-rules`, `--json`, `--sarif` |
 | `parse`   | Dump one template's structural node tree  | `--json` |
 
 ### Exit codes

@@ -58,6 +58,7 @@ final class ConfigLoader
             lintOnly: $this->stringList($lint['only'] ?? null),
             lintExclude: $this->stringList($lint['exclude'] ?? null),
             lintFailOn: $this->stringOrNull($lint['failOn'] ?? null),
+            lintBaseline: $this->stringOrNull($lint['baseline'] ?? null),
             cloneMinElements: $this->intOrNull($analyze['minElements'] ?? null),
             cloneMinOccurrences: $this->intOrNull($analyze['minOccurrences'] ?? null),
             baseline: $this->stringOrNull($analyze['baseline'] ?? null),
