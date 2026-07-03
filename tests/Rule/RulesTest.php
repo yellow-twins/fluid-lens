@@ -13,6 +13,8 @@ use YellowTwins\FluidLens\Rule\Wcag\IframeTitleRule;
 use YellowTwins\FluidLens\Rule\Wcag\MediaAutoplayRule;
 use YellowTwins\FluidLens\Rule\Rule;
 use YellowTwins\FluidLens\Rule\Severity;
+use YellowTwins\FluidLens\Rule\Wcag\AriaAttributeRule;
+use YellowTwins\FluidLens\Rule\Wcag\AriaHiddenFocusableRule;
 use YellowTwins\FluidLens\Rule\Wcag\AriaRoleRule;
 use YellowTwins\FluidLens\Rule\Wcag\ButtonNameRule;
 use YellowTwins\FluidLens\Rule\Wcag\DuplicateIdRule;
@@ -68,6 +70,24 @@ final class RulesTest extends TestCase
         self::assertCount(1, $this->runRule(new AriaRoleRule(), '<div role="buton">x</div>'));
         self::assertSame([], $this->runRule(new AriaRoleRule(), '<div role="button">x</div>'));
         self::assertSame([], $this->runRule(new AriaRoleRule(), '<div role="{dynamic}">x</div>'));
+    }
+
+    public function testUnknownAriaAttributeWarns(): void
+    {
+        self::assertCount(1, $this->runRule(new AriaAttributeRule(), '<div aria-lable="x">y</div>'));
+        self::assertSame([], $this->runRule(new AriaAttributeRule(), '<div aria-label="x">y</div>'));
+    }
+
+    public function testAriaHiddenFocusableWarns(): void
+    {
+        $rule = new AriaHiddenFocusableRule();
+        $focusableDiv = '<div tabindex="0" aria-hidden="true">i</div>';
+        $optedOutLink = '<a href="/x" aria-hidden="true" tabindex="-1">i</a>';
+
+        self::assertCount(1, $this->runRule($rule, '<a href="/x" aria-hidden="true">i</a>'));
+        self::assertCount(1, $this->runRule($rule, $focusableDiv));
+        self::assertSame([], $this->runRule($rule, '<span aria-hidden="true">i</span>'));
+        self::assertSame([], $this->runRule($rule, $optedOutLink));
     }
 
     public function testUnlabelledControlWarnsButLabelledOneDoesNot(): void

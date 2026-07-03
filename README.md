@@ -1,5 +1,10 @@
 # fluid-lens
 
+[![Packagist Version](https://img.shields.io/packagist/v/yellow-twins/fluid-lens)](https://packagist.org/packages/yellow-twins/fluid-lens)
+[![QA](https://github.com/yellow-twins/fluid-lens/actions/workflows/qa.yml/badge.svg)](https://github.com/yellow-twins/fluid-lens/actions/workflows/qa.yml)
+[![PHP Version](https://img.shields.io/packagist/php-v/yellow-twins/fluid-lens)](https://packagist.org/packages/yellow-twins/fluid-lens)
+[![License](https://img.shields.io/packagist/l/yellow-twins/fluid-lens)](LICENSE)
+
 > Static analysis for Fluid templates — find markup that should be a Partial, and catch accessibility & best-practice problems, straight from the command line.
 
 `fluid-lens` reads your Fluid templates and *x-rays* them: it looks for duplicated
@@ -99,6 +104,8 @@ advisory). What it checks statically:
 | `wcag.positive-tabindex` — `tabindex` greater than 0 | warning | 2.4.3 (A) |
 | `wcag.table-header` — data table without `<th>` | warning | 1.3.1 (A) |
 | `wcag.aria-role` — unknown WAI-ARIA `role` value | warning | 4.1.2 (A) |
+| `wcag.aria-attr` — unknown `aria-*` attribute (typo) | warning | 4.1.2 (A) |
+| `wcag.aria-hidden-focusable` — `aria-hidden` on a focusable element | warning | 4.1.2 (A) |
 | `wcag.iframe-title` — `<iframe>` without a `title` | warning | 4.1.2 (A) |
 | `wcag.media-autoplay` — audio/unmuted video that autoplays sound | warning | 1.4.2 (A) |
 | `wcag.heading-order` — heading levels skipped | warning | 1.3.1 (A) |

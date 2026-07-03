@@ -7,6 +7,8 @@ namespace YellowTwins\FluidLens\Rule;
 use YellowTwins\FluidLens\Rule\BestPractice\InlineStyleRule;
 use YellowTwins\FluidLens\Rule\BestPractice\InlineSvgRule;
 use YellowTwins\FluidLens\Rule\BestPractice\PreferFluidImageRule;
+use YellowTwins\FluidLens\Rule\Wcag\AriaAttributeRule;
+use YellowTwins\FluidLens\Rule\Wcag\AriaHiddenFocusableRule;
 use YellowTwins\FluidLens\Rule\Wcag\AriaRoleRule;
 use YellowTwins\FluidLens\Rule\Wcag\ButtonNameRule;
 use YellowTwins\FluidLens\Rule\Wcag\DuplicateIdRule;
@@ -40,6 +42,8 @@ final class RuleSet
             new PositiveTabindexRule(),
             new TableHeaderRule(),
             new AriaRoleRule(),
+            new AriaAttributeRule(),
+            new AriaHiddenFocusableRule(),
             new IframeTitleRule(),
             new MediaAutoplayRule(),
             new DuplicateIdRule(),
