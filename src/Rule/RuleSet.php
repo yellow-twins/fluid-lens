@@ -22,6 +22,7 @@ use YellowTwins\FluidLens\Rule\Wcag\HeadingOrderRule;
 use YellowTwins\FluidLens\Rule\Wcag\HtmlLangRule;
 use YellowTwins\FluidLens\Rule\Wcag\IframeTitleRule;
 use YellowTwins\FluidLens\Rule\Wcag\ImageAltRule;
+use YellowTwins\FluidLens\Rule\Wcag\LabelForRule;
 use YellowTwins\FluidLens\Rule\Wcag\LinkNameRule;
 use YellowTwins\FluidLens\Rule\Wcag\MediaAutoplayRule;
 use YellowTwins\FluidLens\Rule\Wcag\MetaViewportRule;
@@ -46,6 +47,7 @@ final class RuleSet
             new LinkNameRule(),
             new ButtonNameRule(),
             new FormLabelRule(),
+            new LabelForRule(),
             new HtmlLangRule(),
             new PositiveTabindexRule(),
             new TableHeaderRule(),

@@ -19,6 +19,7 @@ final class RuleCatalog
         'wcag.link-name' => 'Link with no discernible text',
         'wcag.button-name' => 'Button with no discernible text',
         'wcag.form-label' => 'Form control that cannot be labelled',
+        'wcag.label-for' => '<label for> with no matching id in the template',
         'wcag.html-lang' => '<html> without a lang attribute',
         'wcag.positive-tabindex' => 'Positive tabindex disrupts focus order',
         'wcag.table-header' => 'Data table without <th> headers',

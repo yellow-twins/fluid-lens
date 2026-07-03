@@ -107,6 +107,7 @@ What it checks statically:
 | `wcag.button-name` — button with no discernible text (icon-only) | error | 4.1.2 (A) |
 | `wcag.duplicate-id` — duplicate `id` in one document | error | 4.1.1 (A) |
 | `wcag.form-label` — control with no way to be labelled | warning | 4.1.2 (A) |
+| `wcag.label-for` — `<label for>` with no matching id (skips Fluid forms) | notice | 1.3.1 (A) |
 | `wcag.html-lang` — `<html>` without `lang` | warning | 3.1.1 (A) |
 | `wcag.positive-tabindex` — `tabindex` greater than 0 | warning | 2.4.3 (A) |
 | `wcag.table-header` — data table without `<th>` | warning | 1.3.1 (A) |

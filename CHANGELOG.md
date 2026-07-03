@@ -24,7 +24,10 @@ All notable changes to this project are documented here. The format is based on
   attributes, `aria-hidden` on focusable elements, untitled iframes, autoplaying
   media, empty headings, zoom-blocking viewport meta tags, raw `<img>` in place
   of `<f:image>`, `target="_blank"` without `rel="noopener"`, and broken
-  `<picture>` markup (missing `<img>` fallback, `<source>` without `srcset`).
+  `<picture>` markup (missing `<img>` fallback, `<source>` without `srcset`),
+  broken tabs (`role="tab"` without `aria-selected`, `role="tablist"` without a
+  tab), broken accordions (`aria-expanded` on a non-interactive element), and
+  `<label for>` pointing at a missing id (conservative, skips Fluid forms).
   `--only` /
   `--exclude` accept a trailing `*` wildcard (e.g. `wcag.*`), and `--list-rules`
   groups rules by prefix and describes each one. Rule descriptions also enrich the
