@@ -20,6 +20,7 @@ final class Config
         public readonly array $paths = [],
         public readonly array $lintOnly = [],
         public readonly array $lintExclude = [],
+        public readonly ?string $lintFailOn = null,
         public readonly ?int $cloneMinElements = null,
         public readonly ?int $cloneMinOccurrences = null,
         public readonly ?string $baseline = null,

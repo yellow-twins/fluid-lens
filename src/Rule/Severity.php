@@ -18,4 +18,16 @@ enum Severity: string
     {
         return $this !== self::Notice;
     }
+
+    /**
+     * A comparable order of seriousness, highest first: error 3, warning 2, notice 1.
+     */
+    public function rank(): int
+    {
+        return match ($this) {
+            self::Error => 3,
+            self::Warning => 2,
+            self::Notice => 1,
+        };
+    }
 }

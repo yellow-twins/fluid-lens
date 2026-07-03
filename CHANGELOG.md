@@ -28,7 +28,8 @@ All notable changes to this project are documented here. The format is based on
   `--only` /
   `--exclude` accept a trailing `*` wildcard (e.g. `wcag.*`), and `--list-rules`
   groups rules by prefix and describes each one. Rule descriptions also enrich the
-  SARIF output (`shortDescription`).
+  SARIF output (`shortDescription`). `--fail-on=error|warning|notice|never`
+  (also `lint.failOn` in config) controls the severity that fails the run.
 - `parse` command: dump a single template's structural node tree.
 - Inline suppression via `{# @fluidlint-ignore #}` markers.
 - PHPStan-style baseline (`--generate-baseline` / `--baseline`) for adopting the

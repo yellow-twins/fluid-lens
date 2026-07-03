@@ -90,8 +90,15 @@ vendor/bin/fluid-lens lint path/to/Templates/
 vendor/bin/fluid-lens lint path/to/Templates/ --json
 ```
 
-The command exits non-zero when it finds an error or warning (notices are
-advisory). What it checks statically:
+By default the command exits non-zero on any error or warning (notices are
+advisory). Adjust the gate with `--fail-on=error|warning|notice|never` — for
+example fail only on errors while you adopt it:
+
+```bash
+vendor/bin/fluid-lens lint packages/ --fail-on=error
+```
+
+What it checks statically:
 
 | Rule | Severity | WCAG |
 |------|----------|------|
@@ -217,7 +224,7 @@ configured `paths`.
 |-----------|-------------------------------------------|-------------|
 | `analyze` | Find exact duplicated structures          | `--min-elements`, `--min-occurrences`, `--baseline`, `--generate-baseline`, `--json` |
 | `similar` | Find near-duplicate structures            | `--threshold`, `--min-elements`, `--json` |
-| `lint`    | Check accessibility (WCAG) & best practices | `--only`, `--exclude`, `--list-rules`, `--json`, `--sarif` |
+| `lint`    | Check accessibility (WCAG) & best practices | `--only`, `--exclude`, `--fail-on`, `--list-rules`, `--json`, `--sarif` |
 | `parse`   | Dump one template's structural node tree  | `--json` |
 
 ### Exit codes

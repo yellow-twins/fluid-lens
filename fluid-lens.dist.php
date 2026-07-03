@@ -24,6 +24,9 @@ return [
         ],
         // Or, to run only a specific set instead, list them here:
         // 'only' => ['wcag.img-alt', 'wcag.button-name'],
+
+        // Severity that makes the run fail: error, warning (default), notice or never.
+        // 'failOn' => 'error',
     ],
 
     'analyze' => [

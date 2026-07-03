@@ -22,6 +22,7 @@ use YellowTwins\FluidLens\Rule\Rule;
 use YellowTwins\FluidLens\Rule\RuleCatalog;
 use YellowTwins\FluidLens\Rule\RuleSelector;
 use YellowTwins\FluidLens\Rule\RuleSet;
+use YellowTwins\FluidLens\Rule\Severity;
 use YellowTwins\FluidLens\Template\TemplateCollector;
 
 /**
@@ -54,6 +55,7 @@ final class LintCommand extends Command
             ->addOption('sarif', null, InputOption::VALUE_NONE, 'Output SARIF 2.1.0 (GitHub code scanning).')
             ->addOption('only', null, InputOption::VALUE_REQUIRED, 'Run only these rules (comma-separated names).')
             ->addOption('exclude', null, InputOption::VALUE_REQUIRED, 'Skip these rules (comma-separated names).')
+            ->addOption('fail-on', null, InputOption::VALUE_REQUIRED, 'Fail on: error, warning, notice or never.')
             ->addOption('list-rules', null, InputOption::VALUE_NONE, 'List the available rules and exit.');
     }
 
@@ -95,7 +97,9 @@ final class LintCommand extends Command
             default => (new ConsoleLintReporter())->report($io, $findings, $fileCount),
         };
 
-        return $this->hasBuildFailure($findings) ? Command::FAILURE : Command::SUCCESS;
+        $failOn = $this->options->string($input, 'fail-on', $config->lintFailOn) ?? 'warning';
+
+        return $this->hasFailure($findings, $failOn) ? Command::FAILURE : Command::SUCCESS;
     }
 
     private function resolveFormat(InputInterface $input): string
@@ -143,14 +147,32 @@ final class LintCommand extends Command
     /**
      * @param list<Finding> $findings
      */
-    private function hasBuildFailure(array $findings): bool
+    private function hasFailure(array $findings, string $failOn): bool
     {
+        $threshold = $this->threshold($failOn);
+        if ($threshold === null) {
+            return false;
+        }
+
         foreach ($findings as $finding) {
-            if ($finding->severity->failsBuild()) {
+            if ($finding->severity->rank() >= $threshold) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    /**
+     * The severity rank at or above which a run fails, or null to never fail.
+     */
+    private function threshold(string $failOn): ?int
+    {
+        return match (strtolower($failOn)) {
+            'error' => Severity::Error->rank(),
+            'notice' => Severity::Notice->rank(),
+            'never' => null,
+            default => Severity::Warning->rank(),
+        };
     }
 }
