@@ -6,6 +6,8 @@ namespace YellowTwins\FluidLens\Rule;
 
 use YellowTwins\FluidLens\Rule\BestPractice\InlineStyleRule;
 use YellowTwins\FluidLens\Rule\BestPractice\InlineSvgRule;
+use YellowTwins\FluidLens\Rule\Wcag\AriaRoleRule;
+use YellowTwins\FluidLens\Rule\Wcag\ButtonNameRule;
 use YellowTwins\FluidLens\Rule\Wcag\DuplicateIdRule;
 use YellowTwins\FluidLens\Rule\Wcag\FormLabelRule;
 use YellowTwins\FluidLens\Rule\Wcag\HeadingOrderRule;
@@ -29,10 +31,12 @@ final class RuleSet
         return [
             new ImageAltRule(),
             new LinkNameRule(),
+            new ButtonNameRule(),
             new FormLabelRule(),
             new HtmlLangRule(),
             new PositiveTabindexRule(),
             new TableHeaderRule(),
+            new AriaRoleRule(),
             new DuplicateIdRule(),
             new HeadingOrderRule(),
             new InlineStyleRule(),

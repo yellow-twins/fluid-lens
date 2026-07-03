@@ -10,6 +10,8 @@ use YellowTwins\FluidLens\Rule\BestPractice\InlineStyleRule;
 use YellowTwins\FluidLens\Rule\BestPractice\InlineSvgRule;
 use YellowTwins\FluidLens\Rule\Rule;
 use YellowTwins\FluidLens\Rule\Severity;
+use YellowTwins\FluidLens\Rule\Wcag\AriaRoleRule;
+use YellowTwins\FluidLens\Rule\Wcag\ButtonNameRule;
 use YellowTwins\FluidLens\Rule\Wcag\DuplicateIdRule;
 use YellowTwins\FluidLens\Rule\Wcag\FormLabelRule;
 use YellowTwins\FluidLens\Rule\Wcag\HeadingOrderRule;
@@ -49,6 +51,20 @@ final class RulesTest extends TestCase
         self::assertSame([], $this->runRule(new LinkNameRule(), '<a href="/x">Read more</a>'));
         self::assertSame([], $this->runRule(new LinkNameRule(), $ariaLabelled));
         self::assertSame([], $this->runRule(new LinkNameRule(), '<a href="/x">{product.title}</a>'));
+    }
+
+    public function testIconOnlyButtonIsAnError(): void
+    {
+        self::assertCount(1, $this->runRule(new ButtonNameRule(), '<button><svg><path/></svg></button>'));
+        self::assertSame([], $this->runRule(new ButtonNameRule(), '<button>Save</button>'));
+        self::assertSame([], $this->runRule(new ButtonNameRule(), '<button aria-label="Close"><svg/></button>'));
+    }
+
+    public function testUnknownAriaRoleWarns(): void
+    {
+        self::assertCount(1, $this->runRule(new AriaRoleRule(), '<div role="buton">x</div>'));
+        self::assertSame([], $this->runRule(new AriaRoleRule(), '<div role="button">x</div>'));
+        self::assertSame([], $this->runRule(new AriaRoleRule(), '<div role="{dynamic}">x</div>'));
     }
 
     public function testUnlabelledControlWarnsButLabelledOneDoesNot(): void

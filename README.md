@@ -92,14 +92,25 @@ advisory). What it checks statically:
 |------|----------|------|
 | `wcag.img-alt` — image without an `alt` attribute | error | 1.1.1 (A) |
 | `wcag.link-name` — link with no discernible text (icon-only) | error | 2.4.4 (A) |
+| `wcag.button-name` — button with no discernible text (icon-only) | error | 4.1.2 (A) |
 | `wcag.duplicate-id` — duplicate `id` in one document | error | 4.1.1 (A) |
 | `wcag.form-label` — control with no way to be labelled | warning | 4.1.2 (A) |
 | `wcag.html-lang` — `<html>` without `lang` | warning | 3.1.1 (A) |
 | `wcag.positive-tabindex` — `tabindex` greater than 0 | warning | 2.4.3 (A) |
 | `wcag.table-header` — data table without `<th>` | warning | 1.3.1 (A) |
+| `wcag.aria-role` — unknown WAI-ARIA `role` value | warning | 4.1.2 (A) |
 | `wcag.heading-order` — heading levels skipped | warning | 1.3.1 (A) |
 | `style.inline` — inline `style` attribute | notice | — |
 | `partial.inline-svg` — inline `<svg>` to extract into an Icon partial | notice | — |
+
+Pick which rules run with `--only` / `--exclude`, or see them all with
+`--list-rules`:
+
+```bash
+vendor/bin/fluid-lens lint --list-rules
+vendor/bin/fluid-lens lint path/ --exclude=style.inline,partial.inline-svg   # errors & warnings only
+vendor/bin/fluid-lens lint path/ --only=wcag.img-alt,wcag.button-name
+```
 
 **Honest by design:** criteria that genuinely need a rendered page — colour
 contrast, runtime focus order, reflow — are *not* silently passed. The report

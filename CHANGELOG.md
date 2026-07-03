@@ -15,10 +15,12 @@ All notable changes to this project are documented here. The format is based on
 - `similar` command: near-duplicate detection via pq-gram similarity, clustered
   by a divergence score.
 - `lint` command: accessibility (WCAG) and best-practice sniffs — missing image
-  `alt`, icon-only links, duplicate ids, unlabelled form controls, missing
-  `<html lang>`, positive `tabindex`, tables without headers, skipped heading
-  levels, inline styles and inline SVGs. Criteria that need a rendered page are
-  reported as needing a runtime check rather than silently passed.
+  `alt`, icon-only links and buttons, duplicate ids, unlabelled form controls,
+  missing `<html lang>`, positive `tabindex`, tables without headers, unknown
+  ARIA roles, skipped heading levels, inline styles and inline SVGs. Criteria
+  that need a rendered page are reported as needing a runtime check rather than
+  silently passed. Rules can be filtered with `--only` / `--exclude` and listed
+  with `--list-rules`.
 - `parse` command: dump a single template's structural node tree.
 - Inline suppression via `{# @fluidlint-ignore #}` markers.
 - PHPStan-style baseline (`--generate-baseline` / `--baseline`) for adopting the
