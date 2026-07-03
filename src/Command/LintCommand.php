@@ -15,6 +15,7 @@ use YellowTwins\FluidLens\Config\Config;
 use YellowTwins\FluidLens\Config\OptionResolver;
 use YellowTwins\FluidLens\Report\ConsoleLintReporter;
 use YellowTwins\FluidLens\Report\JsonLintReporter;
+use YellowTwins\FluidLens\Report\SarifLintReporter;
 use YellowTwins\FluidLens\Rule\Finding;
 use YellowTwins\FluidLens\Rule\Linter;
 use YellowTwins\FluidLens\Rule\Rule;
@@ -49,6 +50,7 @@ final class LintCommand extends Command
             ->addArgument('path', InputArgument::OPTIONAL, 'A file or directory (default: config paths).')
             ->addOption('config', null, InputOption::VALUE_REQUIRED, 'Path to a fluid-lens.php config file.')
             ->addOption('json', null, InputOption::VALUE_NONE, 'Output findings as JSON instead of a report.')
+            ->addOption('sarif', null, InputOption::VALUE_NONE, 'Output SARIF 2.1.0 (GitHub code scanning).')
             ->addOption('only', null, InputOption::VALUE_REQUIRED, 'Run only these rules (comma-separated names).')
             ->addOption('exclude', null, InputOption::VALUE_REQUIRED, 'Skip these rules (comma-separated names).')
             ->addOption('list-rules', null, InputOption::VALUE_NONE, 'List the available rules and exit.');
@@ -78,18 +80,30 @@ final class LintCommand extends Command
             return Command::FAILURE;
         }
 
-        $this->warnAboutSkipped($io, $collection);
+        $format = $this->resolveFormat($input);
+        if ($format === 'console') {
+            $this->warnAboutSkipped($io, $collection);
+        }
 
         $findings = (new Linter($this->selectRules($input, $config)))->lint($collection->templates);
         $fileCount = count($collection->templates);
 
-        if ($input->getOption('json') === true) {
-            $output->writeln((new JsonLintReporter())->render($findings, $fileCount));
-        } else {
-            (new ConsoleLintReporter())->report($io, $findings, $fileCount);
-        }
+        match ($format) {
+            'sarif' => $output->writeln((new SarifLintReporter())->render($findings)),
+            'json' => $output->writeln((new JsonLintReporter())->render($findings, $fileCount)),
+            default => (new ConsoleLintReporter())->report($io, $findings, $fileCount),
+        };
 
         return $this->hasBuildFailure($findings) ? Command::FAILURE : Command::SUCCESS;
+    }
+
+    private function resolveFormat(InputInterface $input): string
+    {
+        if ($input->getOption('sarif') === true) {
+            return 'sarif';
+        }
+
+        return $input->getOption('json') === true ? 'json' : 'console';
     }
 
     /**

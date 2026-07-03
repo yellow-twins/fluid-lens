@@ -26,7 +26,8 @@ All notable changes to this project are documented here. The format is based on
 - Inline suppression via `{# @fluidlint-ignore #}` markers.
 - PHPStan-style baseline (`--generate-baseline` / `--baseline`) for adopting the
   tool on existing projects.
-- Human-readable and `--json` output for every command.
+- Human-readable and `--json` output for every command; `lint --sarif` emits
+  SARIF 2.1.0 for GitHub code scanning.
 - Project configuration via a `fluid-lens.php` file (`paths`, per-command
   options and default lint rules), with precedence command-line > config > default.
   Scanning commands accept `--config` and fall back to the configured `paths`.

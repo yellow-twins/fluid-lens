@@ -204,7 +204,7 @@ configured `paths`.
 |-----------|-------------------------------------------|-------------|
 | `analyze` | Find exact duplicated structures          | `--min-elements`, `--min-occurrences`, `--baseline`, `--generate-baseline`, `--json` |
 | `similar` | Find near-duplicate structures            | `--threshold`, `--min-elements`, `--json` |
-| `lint`    | Check accessibility (WCAG) & best practices | `--only`, `--exclude`, `--list-rules`, `--json` |
+| `lint`    | Check accessibility (WCAG) & best practices | `--only`, `--exclude`, `--list-rules`, `--json`, `--sarif` |
 | `parse`   | Dump one template's structural node tree  | `--json` |
 
 ### Exit codes
@@ -265,6 +265,26 @@ best-practice sniffs, with criteria that need a rendered page reported as
 best practice, expanded ARIA validation.
 
 **Later — Auto-fix**: generate the suggested Partial and the `<f:render>` replacement.
+
+## Continuous integration
+
+Every command exits non-zero on findings, so it gates a pipeline out of the box:
+
+```bash
+vendor/bin/fluid-lens analyze packages/ --baseline=fluid-lens-baseline.json
+vendor/bin/fluid-lens lint packages/ --exclude=style.inline,partial.inline-svg
+```
+
+`lint --sarif` emits SARIF 2.1.0, so accessibility findings show up inline on pull
+requests via GitHub code scanning:
+
+```yaml
+- name: Fluid accessibility lint
+  run: vendor/bin/fluid-lens lint packages/ --sarif > fluid-lens.sarif || true
+- uses: github/codeql-action/upload-sarif@v3
+  with:
+    sarif_file: fluid-lens.sarif
+```
 
 ## Quality gates
 
