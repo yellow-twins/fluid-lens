@@ -48,6 +48,7 @@ final class AnalyzeCommand extends Command
         $this
             ->addArgument('path', InputArgument::OPTIONAL, 'A file or directory (default: config paths).')
             ->addOption('config', null, InputOption::VALUE_REQUIRED, 'Path to a fluid-lens.php config file.')
+            ->addOption('exclude-path', null, InputOption::VALUE_REQUIRED, 'Glob patterns of files to skip.')
             ->addOption('json', null, InputOption::VALUE_NONE, 'Output findings as JSON instead of a report.')
             ->addOption('min-elements', null, InputOption::VALUE_REQUIRED, 'Minimum elements per structure.')
             ->addOption('min-occurrences', null, InputOption::VALUE_REQUIRED, 'Minimum repetitions to report.')
@@ -73,7 +74,8 @@ final class AnalyzeCommand extends Command
             return Command::FAILURE;
         }
 
-        $collection = $this->collector->collectPaths($paths, $config->excludePaths);
+        $exclude = $this->options->stringList($input, 'exclude-path', $config->excludePaths);
+        $collection = $this->collector->collectPaths($paths, $exclude);
         if ($collection->isEmpty()) {
             $io->error(sprintf('No Fluid templates found at: %s', implode(', ', $paths)));
 

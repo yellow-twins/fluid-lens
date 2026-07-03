@@ -229,8 +229,9 @@ with the package.
 
 ## Command reference
 
-All scanning commands accept `--config` and, when no path is given, fall back to the
-configured `paths`.
+All scanning commands accept `--config`, skip files matching `--exclude-path`
+(comma-separated globs, adding to the configured `exclude`), and, when no path is
+given, fall back to the configured `paths`.
 
 | Command   | Purpose                                   | Key options |
 |-----------|-------------------------------------------|-------------|
