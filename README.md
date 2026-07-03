@@ -174,13 +174,37 @@ composer exec fluid-lens -- analyze packages/   # ad-hoc, without a script
 This repository itself ships `composer analyze`, `composer similar` and
 `composer lint` shortcuts (see `composer.json`), e.g. `composer analyze -- path/`.
 
+## Configuration
+
+Instead of repeating options on every run, drop a `fluid-lens.php` in your project
+root (auto-discovered, or point at it with `--config`). Command-line options always
+win over the file, which in turn wins over the built-in defaults.
+
+```php
+<?php // fluid-lens.php
+
+return [
+    'paths'   => ['packages/'],                       // scanned when no path is given
+    'lint'    => ['exclude' => ['style.inline']],     // or 'only' => [...]
+    'analyze' => ['minElements' => 3, 'minOccurrences' => 2],
+    'similar' => ['threshold' => 0.85, 'minElements' => 4],
+];
+```
+
+With that in place, `fluid-lens lint` (no arguments) scans the configured paths with
+the configured rules. A ready-to-copy [`fluid-lens.dist.php`](fluid-lens.dist.php) ships
+with the package.
+
 ## Command reference
+
+All scanning commands accept `--config` and, when no path is given, fall back to the
+configured `paths`.
 
 | Command   | Purpose                                   | Key options |
 |-----------|-------------------------------------------|-------------|
 | `analyze` | Find exact duplicated structures          | `--min-elements`, `--min-occurrences`, `--baseline`, `--generate-baseline`, `--json` |
 | `similar` | Find near-duplicate structures            | `--threshold`, `--min-elements`, `--json` |
-| `lint`    | Check accessibility (WCAG) & best practices | `--json` |
+| `lint`    | Check accessibility (WCAG) & best practices | `--only`, `--exclude`, `--list-rules`, `--json` |
 | `parse`   | Dump one template's structural node tree  | `--json` |
 
 ### Exit codes

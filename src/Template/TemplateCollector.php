@@ -31,6 +31,34 @@ final class TemplateCollector
         $this->pruner = $pruner ?? new TreePruner();
     }
 
+    /**
+     * Collects templates from several paths into one collection, de-duplicating
+     * files that more than one path resolves to.
+     *
+     * @param list<string> $paths
+     */
+    public function collectPaths(array $paths): TemplateCollection
+    {
+        $templates = [];
+        $skipped = [];
+        $seen = [];
+
+        foreach ($paths as $path) {
+            $collection = $this->collect($path);
+            foreach ($collection->templates as $template) {
+                if (!isset($seen[$template->file])) {
+                    $seen[$template->file] = true;
+                    $templates[] = $template;
+                }
+            }
+            foreach ($collection->skipped as $skip) {
+                $skipped[] = $skip;
+            }
+        }
+
+        return new TemplateCollection($templates, $skipped);
+    }
+
     public function collect(string $path): TemplateCollection
     {
         $templates = [];

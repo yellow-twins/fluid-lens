@@ -27,6 +27,9 @@ All notable changes to this project are documented here. The format is based on
 - PHPStan-style baseline (`--generate-baseline` / `--baseline`) for adopting the
   tool on existing projects.
 - Human-readable and `--json` output for every command.
+- Project configuration via a `fluid-lens.php` file (`paths`, per-command
+  options and default lint rules), with precedence command-line > config > default.
+  Scanning commands accept `--config` and fall back to the configured `paths`.
 - Optional native TYPO3 commands (`fluidlens:analyze`, `fluidlens:similar`).
 - CI running phpcs (PSR-12), PHPStan level 7, Psalm level 6 and PHPUnit on
   PHP 8.1–8.4.

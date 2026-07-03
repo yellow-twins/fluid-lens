@@ -12,10 +12,12 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use YellowTwins\FluidLens\Baseline\Baseline;
+use YellowTwins\FluidLens\Config\Config;
+use YellowTwins\FluidLens\Config\OptionResolver;
 use YellowTwins\FluidLens\Detector\CloneDetector;
+use YellowTwins\FluidLens\Detector\CloneGroup;
 use YellowTwins\FluidLens\Report\ConsoleCloneReporter;
 use YellowTwins\FluidLens\Report\JsonCloneReporter;
-use YellowTwins\FluidLens\Template\TemplateCollection;
 use YellowTwins\FluidLens\Template\TemplateCollector;
 
 /**
@@ -30,10 +32,13 @@ use YellowTwins\FluidLens\Template\TemplateCollector;
 )]
 final class AnalyzeCommand extends Command
 {
+    use ResolvesConfig;
+
     private const DEFAULT_BASELINE = 'fluid-lens-baseline.json';
 
     public function __construct(
         private readonly TemplateCollector $collector = new TemplateCollector(),
+        private readonly OptionResolver $options = new OptionResolver(),
     ) {
         parent::__construct();
     }
@@ -41,28 +46,12 @@ final class AnalyzeCommand extends Command
     protected function configure(): void
     {
         $this
-            ->addArgument('path', InputArgument::REQUIRED, 'A template file or a directory to scan recursively.')
+            ->addArgument('path', InputArgument::OPTIONAL, 'A file or directory (default: config paths).')
+            ->addOption('config', null, InputOption::VALUE_REQUIRED, 'Path to a fluid-lens.php config file.')
             ->addOption('json', null, InputOption::VALUE_NONE, 'Output findings as JSON instead of a report.')
-            ->addOption(
-                'min-elements',
-                null,
-                InputOption::VALUE_REQUIRED,
-                'Minimum elements a structure must have to be reported.',
-                '3',
-            )
-            ->addOption(
-                'min-occurrences',
-                null,
-                InputOption::VALUE_REQUIRED,
-                'Minimum times a structure must repeat to be reported.',
-                '2',
-            )
-            ->addOption(
-                'baseline',
-                null,
-                InputOption::VALUE_REQUIRED,
-                'Suppress duplicates recorded in this baseline file.',
-            )
+            ->addOption('min-elements', null, InputOption::VALUE_REQUIRED, 'Minimum elements per structure.')
+            ->addOption('min-occurrences', null, InputOption::VALUE_REQUIRED, 'Minimum repetitions to report.')
+            ->addOption('baseline', null, InputOption::VALUE_REQUIRED, 'Suppress duplicates listed in this baseline.')
             ->addOption(
                 'generate-baseline',
                 null,
@@ -75,23 +64,31 @@ final class AnalyzeCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $collection = $this->collector->collect((string) $input->getArgument('path'));
+        $config = $this->loadConfig($input);
 
+        $paths = $this->resolvePaths($input, $config);
+        if ($paths === []) {
+            $io->error('No path given. Pass one, or set "paths" in fluid-lens.php.');
+
+            return Command::FAILURE;
+        }
+
+        $collection = $this->collector->collectPaths($paths);
         if ($collection->isEmpty()) {
-            $io->error(sprintf('No Fluid templates found at: %s', $input->getArgument('path')));
+            $io->error(sprintf('No Fluid templates found at: %s', implode(', ', $paths)));
 
             return Command::FAILURE;
         }
 
         $this->warnAboutSkipped($io, $collection);
 
-        $groups = $this->createDetector($input)->detect($collection->templates);
+        $groups = $this->createDetector($input, $config)->detect($collection->templates);
 
         if ($this->isGeneratingBaseline($input)) {
             return $this->writeBaseline($io, $input, $groups);
         }
 
-        $groups = $this->applyBaseline($io, $input, $groups);
+        $groups = $this->applyBaseline($io, $input, $config, $groups);
         $fileCount = count($collection->templates);
 
         if ($input->getOption('json') === true) {
@@ -103,11 +100,11 @@ final class AnalyzeCommand extends Command
         return $groups === [] ? Command::SUCCESS : Command::FAILURE;
     }
 
-    private function createDetector(InputInterface $input): CloneDetector
+    private function createDetector(InputInterface $input, Config $config): CloneDetector
     {
         return new CloneDetector(
-            max(1, (int) $input->getOption('min-elements')),
-            max(2, (int) $input->getOption('min-occurrences')),
+            max(1, $this->options->int($input, 'min-elements', $config->cloneMinElements, 3)),
+            max(2, $this->options->int($input, 'min-occurrences', $config->cloneMinOccurrences, 2)),
         );
     }
 
@@ -117,7 +114,7 @@ final class AnalyzeCommand extends Command
     }
 
     /**
-     * @param list<\YellowTwins\FluidLens\Detector\CloneGroup> $groups
+     * @param list<CloneGroup> $groups
      */
     private function writeBaseline(SymfonyStyle $io, InputInterface $input, array $groups): int
     {
@@ -136,14 +133,14 @@ final class AnalyzeCommand extends Command
     }
 
     /**
-     * @param list<\YellowTwins\FluidLens\Detector\CloneGroup> $groups
+     * @param list<CloneGroup> $groups
      *
-     * @return list<\YellowTwins\FluidLens\Detector\CloneGroup>
+     * @return list<CloneGroup>
      */
-    private function applyBaseline(SymfonyStyle $io, InputInterface $input, array $groups): array
+    private function applyBaseline(SymfonyStyle $io, InputInterface $input, Config $config, array $groups): array
     {
-        $path = $input->getOption('baseline');
-        if (!is_string($path)) {
+        $path = $this->options->string($input, 'baseline', $config->baseline);
+        if ($path === null) {
             return $groups;
         }
 
@@ -154,12 +151,5 @@ final class AnalyzeCommand extends Command
         }
 
         return Baseline::fromJson((string) file_get_contents($path))->filter($groups);
-    }
-
-    private function warnAboutSkipped(SymfonyStyle $io, TemplateCollection $collection): void
-    {
-        foreach ($collection->skipped as $skip) {
-            $io->warning(sprintf('Skipped %s: %s', $skip['file'], $skip['reason']));
-        }
     }
 }
