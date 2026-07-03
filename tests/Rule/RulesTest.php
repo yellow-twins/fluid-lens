@@ -16,6 +16,8 @@ use YellowTwins\FluidLens\Rule\Wcag\EmptyHeadingRule;
 use YellowTwins\FluidLens\Rule\Wcag\IframeTitleRule;
 use YellowTwins\FluidLens\Rule\Wcag\MediaAutoplayRule;
 use YellowTwins\FluidLens\Rule\Wcag\MetaViewportRule;
+use YellowTwins\FluidLens\Rule\Wcag\TablistTabRule;
+use YellowTwins\FluidLens\Rule\Wcag\TabSelectedRule;
 use YellowTwins\FluidLens\Rule\Rule;
 use YellowTwins\FluidLens\Rule\Severity;
 use YellowTwins\FluidLens\Rule\Wcag\AriaAttributeRule;
@@ -85,6 +87,20 @@ final class RulesTest extends TestCase
         self::assertSame([], $this->runRule($rule, '<button aria-expanded="false">Section</button>'));
         self::assertSame([], $this->runRule($rule, '<div role="button" aria-expanded="true">Section</div>'));
         self::assertSame([], $this->runRule($rule, '<a href="#p" aria-expanded="false">Section</a>'));
+    }
+
+    public function testTabWithoutSelectedStateWarns(): void
+    {
+        $selected = '<button role="tab" aria-selected="true">One</button>';
+        self::assertCount(1, $this->runRule(new TabSelectedRule(), '<button role="tab">One</button>'));
+        self::assertSame([], $this->runRule(new TabSelectedRule(), $selected));
+    }
+
+    public function testTablistWithoutTabsWarns(): void
+    {
+        self::assertCount(1, $this->runRule(new TablistTabRule(), '<div role="tablist"><div>x</div></div>'));
+        $ok = '<div role="tablist"><button role="tab" aria-selected="true">One</button></div>';
+        self::assertSame([], $this->runRule(new TablistTabRule(), $ok));
     }
 
     public function testUnknownAriaAttributeWarns(): void

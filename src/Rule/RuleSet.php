@@ -27,6 +27,8 @@ use YellowTwins\FluidLens\Rule\Wcag\MediaAutoplayRule;
 use YellowTwins\FluidLens\Rule\Wcag\MetaViewportRule;
 use YellowTwins\FluidLens\Rule\Wcag\PositiveTabindexRule;
 use YellowTwins\FluidLens\Rule\Wcag\TableHeaderRule;
+use YellowTwins\FluidLens\Rule\Wcag\TabSelectedRule;
+use YellowTwins\FluidLens\Rule\Wcag\TablistTabRule;
 
 /**
  * The built-in rules, covering the statically decidable WCAG (up to AAA) markup
@@ -51,6 +53,8 @@ final class RuleSet
             new AriaAttributeRule(),
             new AriaHiddenFocusableRule(),
             new AriaExpandedRoleRule(),
+            new TabSelectedRule(),
+            new TablistTabRule(),
             new IframeTitleRule(),
             new MediaAutoplayRule(),
             new MetaViewportRule(),

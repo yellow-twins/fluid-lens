@@ -116,6 +116,8 @@ What it checks statically:
 | `wcag.aria-attr` — unknown `aria-*` attribute (typo) | warning | 4.1.2 (A) |
 | `wcag.aria-hidden-focusable` — `aria-hidden` on a focusable element | warning | 4.1.2 (A) |
 | `wcag.aria-expanded-role` — `aria-expanded` on a non-interactive element (broken accordion) | warning | 4.1.2 (A) |
+| `wcag.tab-selected` — `role="tab"` without `aria-selected` | warning | 4.1.2 (A) |
+| `wcag.tablist-tab` — `role="tablist"` without any `role="tab"` | warning | 1.3.1 (A) |
 | `wcag.iframe-title` — `<iframe>` without a `title` | warning | 4.1.2 (A) |
 | `wcag.media-autoplay` — audio/unmuted video that autoplays sound | warning | 1.4.2 (A) |
 | `wcag.heading-order` — heading levels skipped | warning | 1.3.1 (A) |

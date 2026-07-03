@@ -26,6 +26,8 @@ final class RuleCatalog
         'wcag.aria-attr' => 'Unknown aria-* attribute',
         'wcag.aria-hidden-focusable' => 'aria-hidden element that is still focusable',
         'wcag.aria-expanded-role' => 'aria-expanded on a non-interactive element',
+        'wcag.tab-selected' => 'role="tab" without aria-selected',
+        'wcag.tablist-tab' => 'role="tablist" without any role="tab"',
         'wcag.iframe-title' => '<iframe> without a title',
         'wcag.media-autoplay' => 'Media that autoplays sound',
         'wcag.meta-viewport' => 'Viewport meta tag that blocks zoom',
