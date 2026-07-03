@@ -35,6 +35,8 @@ final class RuleCatalog
         'partial.inline-svg' => 'Inline SVG to extract into an Icon partial',
         'image.prefer-fluid' => 'Raw <img> instead of <f:image>',
         'link.target-blank-rel' => 'target="_blank" without rel="noopener"',
+        'markup.picture-img' => '<picture> without an <img> fallback',
+        'markup.source-srcset' => '<source> in <picture> without srcset',
     ];
 
     public static function describe(string $name): ?string

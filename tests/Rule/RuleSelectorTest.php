@@ -45,7 +45,8 @@ final class RuleSelectorTest extends TestCase
 
     public function testWildcardExcludeRemovesByPrefix(): void
     {
-        $selected = (new RuleSelector())->select(RuleSet::default(), [], ['style.*', 'partial.*', 'image.*', 'link.*']);
+        $nonWcag = ['style.*', 'partial.*', 'image.*', 'link.*', 'markup.*'];
+        $selected = (new RuleSelector())->select(RuleSet::default(), [], $nonWcag);
 
         foreach ($selected as $rule) {
             self::assertStringStartsWith('wcag.', $rule->name());

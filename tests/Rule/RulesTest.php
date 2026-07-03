@@ -10,6 +10,8 @@ use YellowTwins\FluidLens\Rule\BestPractice\InlineStyleRule;
 use YellowTwins\FluidLens\Rule\BestPractice\InlineSvgRule;
 use YellowTwins\FluidLens\Rule\BestPractice\PreferFluidImageRule;
 use YellowTwins\FluidLens\Rule\BestPractice\TargetBlankRelRule;
+use YellowTwins\FluidLens\Rule\Markup\PictureImgRule;
+use YellowTwins\FluidLens\Rule\Markup\PictureSourceSrcsetRule;
 use YellowTwins\FluidLens\Rule\Wcag\EmptyHeadingRule;
 use YellowTwins\FluidLens\Rule\Wcag\IframeTitleRule;
 use YellowTwins\FluidLens\Rule\Wcag\MediaAutoplayRule;
@@ -173,6 +175,23 @@ final class RulesTest extends TestCase
         self::assertCount(1, $this->runRule(new MediaAutoplayRule(), '<video autoplay src="a.mp4"></video>'));
         self::assertSame([], $this->runRule(new MediaAutoplayRule(), '<video autoplay muted src="a.mp4"></video>'));
         self::assertSame([], $this->runRule(new MediaAutoplayRule(), '<audio src="a.mp3"></audio>'));
+    }
+
+    public function testPictureWithoutImgFallbackWarns(): void
+    {
+        $broken = '<picture><source srcset="a.webp"/></picture>';
+        $ok = '<picture><source srcset="a.webp"/><img src="a.jpg" alt="x"/></picture>';
+        self::assertCount(1, $this->runRule(new PictureImgRule(), $broken));
+        self::assertSame([], $this->runRule(new PictureImgRule(), $ok));
+    }
+
+    public function testPictureSourceWithoutSrcsetWarns(): void
+    {
+        $rule = new PictureSourceSrcsetRule();
+        self::assertCount(1, $this->runRule($rule, '<picture><source media="(min-width:1px)"/></picture>'));
+        self::assertSame([], $this->runRule($rule, '<picture><source srcset="a.webp"/></picture>'));
+        // A <source> in <video> legitimately uses src, so it is left alone.
+        self::assertSame([], $this->runRule($rule, '<video><source src="a.mp4"/></video>'));
     }
 
     public function testBestPracticeSnipsAreNotices(): void

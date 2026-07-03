@@ -111,6 +111,8 @@ advisory). What it checks statically:
 | `wcag.iframe-title` — `<iframe>` without a `title` | warning | 4.1.2 (A) |
 | `wcag.media-autoplay` — audio/unmuted video that autoplays sound | warning | 1.4.2 (A) |
 | `wcag.heading-order` — heading levels skipped | warning | 1.3.1 (A) |
+| `markup.picture-img` — `<picture>` without an `<img>` fallback | warning | — |
+| `markup.source-srcset` — `<source>` in `<picture>` without `srcset` | warning | — |
 | `style.inline` — inline `style` attribute | notice | — |
 | `partial.inline-svg` — inline `<svg>` to extract into an Icon partial | notice | — |
 | `image.prefer-fluid` — raw `<img>` instead of `<f:image>` | notice | — |

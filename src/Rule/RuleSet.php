@@ -8,6 +8,8 @@ use YellowTwins\FluidLens\Rule\BestPractice\InlineStyleRule;
 use YellowTwins\FluidLens\Rule\BestPractice\InlineSvgRule;
 use YellowTwins\FluidLens\Rule\BestPractice\PreferFluidImageRule;
 use YellowTwins\FluidLens\Rule\BestPractice\TargetBlankRelRule;
+use YellowTwins\FluidLens\Rule\Markup\PictureImgRule;
+use YellowTwins\FluidLens\Rule\Markup\PictureSourceSrcsetRule;
 use YellowTwins\FluidLens\Rule\Wcag\AriaAttributeRule;
 use YellowTwins\FluidLens\Rule\Wcag\AriaHiddenFocusableRule;
 use YellowTwins\FluidLens\Rule\Wcag\AriaRoleRule;
@@ -57,6 +59,8 @@ final class RuleSet
             new InlineSvgRule(),
             new PreferFluidImageRule(),
             new TargetBlankRelRule(),
+            new PictureImgRule(),
+            new PictureSourceSrcsetRule(),
         ];
     }
 }
