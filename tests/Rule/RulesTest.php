@@ -9,8 +9,11 @@ use YellowTwins\FluidLens\Parser\TemplateParser;
 use YellowTwins\FluidLens\Rule\BestPractice\InlineStyleRule;
 use YellowTwins\FluidLens\Rule\BestPractice\InlineSvgRule;
 use YellowTwins\FluidLens\Rule\BestPractice\PreferFluidImageRule;
+use YellowTwins\FluidLens\Rule\BestPractice\TargetBlankRelRule;
+use YellowTwins\FluidLens\Rule\Wcag\EmptyHeadingRule;
 use YellowTwins\FluidLens\Rule\Wcag\IframeTitleRule;
 use YellowTwins\FluidLens\Rule\Wcag\MediaAutoplayRule;
+use YellowTwins\FluidLens\Rule\Wcag\MetaViewportRule;
 use YellowTwins\FluidLens\Rule\Rule;
 use YellowTwins\FluidLens\Rule\Severity;
 use YellowTwins\FluidLens\Rule\Wcag\AriaAttributeRule;
@@ -134,6 +137,28 @@ final class RulesTest extends TestCase
     {
         self::assertCount(1, $this->runRule(new HeadingOrderRule(), '<div><h2>a</h2><h4>b</h4></div>'));
         self::assertSame([], $this->runRule(new HeadingOrderRule(), '<div><h2>a</h2><h3>b</h3></div>'));
+    }
+
+    public function testEmptyHeadingWarns(): void
+    {
+        self::assertCount(1, $this->runRule(new EmptyHeadingRule(), '<h2></h2>'));
+        self::assertSame([], $this->runRule(new EmptyHeadingRule(), '<h2>Title</h2>'));
+        self::assertSame([], $this->runRule(new EmptyHeadingRule(), '<h2>{dynamic}</h2>'));
+    }
+
+    public function testViewportBlockingZoomWarns(): void
+    {
+        $blocked = '<meta name="viewport" content="width=device-width, user-scalable=no"/>';
+        $ok = '<meta name="viewport" content="width=device-width, initial-scale=1"/>';
+        self::assertCount(1, $this->runRule(new MetaViewportRule(), $blocked));
+        self::assertSame([], $this->runRule(new MetaViewportRule(), $ok));
+    }
+
+    public function testTargetBlankWithoutRelNoopenerIsANotice(): void
+    {
+        self::assertCount(1, $this->runRule(new TargetBlankRelRule(), '<a href="/x" target="_blank">x</a>'));
+        $safe = '<a href="/x" target="_blank" rel="noopener">x</a>';
+        self::assertSame([], $this->runRule(new TargetBlankRelRule(), $safe));
     }
 
     public function testIframeWithoutTitleWarns(): void

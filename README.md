@@ -103,6 +103,8 @@ advisory). What it checks statically:
 | `wcag.html-lang` — `<html>` without `lang` | warning | 3.1.1 (A) |
 | `wcag.positive-tabindex` — `tabindex` greater than 0 | warning | 2.4.3 (A) |
 | `wcag.table-header` — data table without `<th>` | warning | 1.3.1 (A) |
+| `wcag.empty-heading` — heading with no text | warning | 1.3.1 (A) |
+| `wcag.meta-viewport` — viewport meta tag that blocks zoom | warning | 1.4.4 (AA) |
 | `wcag.aria-role` — unknown WAI-ARIA `role` value | warning | 4.1.2 (A) |
 | `wcag.aria-attr` — unknown `aria-*` attribute (typo) | warning | 4.1.2 (A) |
 | `wcag.aria-hidden-focusable` — `aria-hidden` on a focusable element | warning | 4.1.2 (A) |
@@ -112,6 +114,7 @@ advisory). What it checks statically:
 | `style.inline` — inline `style` attribute | notice | — |
 | `partial.inline-svg` — inline `<svg>` to extract into an Icon partial | notice | — |
 | `image.prefer-fluid` — raw `<img>` instead of `<f:image>` | notice | — |
+| `link.target-blank-rel` — `target="_blank"` without `rel="noopener"` | notice | — |
 
 Pick which rules run with `--only` / `--exclude`, or see them all with
 `--list-rules`:

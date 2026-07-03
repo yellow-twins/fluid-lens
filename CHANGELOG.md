@@ -22,7 +22,8 @@ All notable changes to this project are documented here. The format is based on
   silently passed. Rules can be filtered with `--only` / `--exclude` and listed
   with `--list-rules`. Also covers icon-only buttons, unknown ARIA roles and
   attributes, `aria-hidden` on focusable elements, untitled iframes, autoplaying
-  media, and raw `<img>` in place of `<f:image>`.
+  media, empty headings, zoom-blocking viewport meta tags, raw `<img>` in place
+  of `<f:image>`, and `target="_blank"` without `rel="noopener"`.
 - `parse` command: dump a single template's structural node tree.
 - Inline suppression via `{# @fluidlint-ignore #}` markers.
 - PHPStan-style baseline (`--generate-baseline` / `--baseline`) for adopting the
