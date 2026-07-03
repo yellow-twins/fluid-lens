@@ -8,6 +8,9 @@ use PHPUnit\Framework\TestCase;
 use YellowTwins\FluidLens\Parser\TemplateParser;
 use YellowTwins\FluidLens\Rule\BestPractice\InlineStyleRule;
 use YellowTwins\FluidLens\Rule\BestPractice\InlineSvgRule;
+use YellowTwins\FluidLens\Rule\BestPractice\PreferFluidImageRule;
+use YellowTwins\FluidLens\Rule\Wcag\IframeTitleRule;
+use YellowTwins\FluidLens\Rule\Wcag\MediaAutoplayRule;
 use YellowTwins\FluidLens\Rule\Rule;
 use YellowTwins\FluidLens\Rule\Severity;
 use YellowTwins\FluidLens\Rule\Wcag\AriaRoleRule;
@@ -113,6 +116,20 @@ final class RulesTest extends TestCase
         self::assertSame([], $this->runRule(new HeadingOrderRule(), '<div><h2>a</h2><h3>b</h3></div>'));
     }
 
+    public function testIframeWithoutTitleWarns(): void
+    {
+        self::assertCount(1, $this->runRule(new IframeTitleRule(), '<iframe src="https://x"></iframe>'));
+        self::assertSame([], $this->runRule(new IframeTitleRule(), '<iframe src="https://x" title="Map"></iframe>'));
+    }
+
+    public function testAutoplayingSoundWarns(): void
+    {
+        self::assertCount(1, $this->runRule(new MediaAutoplayRule(), '<audio autoplay src="a.mp3"></audio>'));
+        self::assertCount(1, $this->runRule(new MediaAutoplayRule(), '<video autoplay src="a.mp4"></video>'));
+        self::assertSame([], $this->runRule(new MediaAutoplayRule(), '<video autoplay muted src="a.mp4"></video>'));
+        self::assertSame([], $this->runRule(new MediaAutoplayRule(), '<audio src="a.mp3"></audio>'));
+    }
+
     public function testBestPracticeSnipsAreNotices(): void
     {
         $style = $this->runRule(new InlineStyleRule(), '<div style="color:red">x</div>');
@@ -120,6 +137,9 @@ final class RulesTest extends TestCase
 
         $svg = $this->runRule(new InlineSvgRule(), '<svg><path d="M0 0"/></svg>');
         self::assertSame(Severity::Notice, $svg[0]->severity);
+
+        $img = $this->runRule(new PreferFluidImageRule(), '<img src="a.jpg" alt="x"/>');
+        self::assertSame(Severity::Notice, $img[0]->severity);
     }
 
     /**

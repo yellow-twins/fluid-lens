@@ -20,7 +20,8 @@ All notable changes to this project are documented here. The format is based on
   ARIA roles, skipped heading levels, inline styles and inline SVGs. Criteria
   that need a rendered page are reported as needing a runtime check rather than
   silently passed. Rules can be filtered with `--only` / `--exclude` and listed
-  with `--list-rules`.
+  with `--list-rules`. Also covers icon-only buttons, unknown ARIA roles,
+  untitled iframes, autoplaying media, and raw `<img>` in place of `<f:image>`.
 - `parse` command: dump a single template's structural node tree.
 - Inline suppression via `{# @fluidlint-ignore #}` markers.
 - PHPStan-style baseline (`--generate-baseline` / `--baseline`) for adopting the

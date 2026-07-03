@@ -99,9 +99,12 @@ advisory). What it checks statically:
 | `wcag.positive-tabindex` — `tabindex` greater than 0 | warning | 2.4.3 (A) |
 | `wcag.table-header` — data table without `<th>` | warning | 1.3.1 (A) |
 | `wcag.aria-role` — unknown WAI-ARIA `role` value | warning | 4.1.2 (A) |
+| `wcag.iframe-title` — `<iframe>` without a `title` | warning | 4.1.2 (A) |
+| `wcag.media-autoplay` — audio/unmuted video that autoplays sound | warning | 1.4.2 (A) |
 | `wcag.heading-order` — heading levels skipped | warning | 1.3.1 (A) |
 | `style.inline` — inline `style` attribute | notice | — |
 | `partial.inline-svg` — inline `<svg>` to extract into an Icon partial | notice | — |
+| `image.prefer-fluid` — raw `<img>` instead of `<f:image>` | notice | — |
 
 Pick which rules run with `--only` / `--exclude`, or see them all with
 `--list-rules`:
