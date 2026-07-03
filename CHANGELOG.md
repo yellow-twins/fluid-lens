@@ -37,9 +37,10 @@ All notable changes to this project are documented here. The format is based on
   baseline matches by rule, file and message, ignoring line numbers).
 - Human-readable and `--json` output for every command; `lint --sarif` emits
   SARIF 2.1.0 for GitHub code scanning.
-- Project configuration via a `fluid-lens.php` file (`paths`, per-command
-  options and default lint rules), with precedence command-line > config > default.
-  Scanning commands accept `--config` and fall back to the configured `paths`.
+- Project configuration via a `fluid-lens.php` file (`paths`, path `exclude`
+  globs, per-command options and default lint rules), with precedence
+  command-line > config > default. Scanning commands accept `--config` and fall
+  back to the configured `paths`.
 - Optional native TYPO3 commands (`fluidlens:analyze`, `fluidlens:similar`).
 - CI running phpcs (PSR-12), PHPStan level 7, Psalm level 6 and PHPUnit on
   PHP 8.1–8.4.

@@ -60,7 +60,7 @@ final class SimilarCommand extends Command
             return Command::FAILURE;
         }
 
-        $collection = $this->collector->collectPaths($paths);
+        $collection = $this->collector->collectPaths($paths, $config->excludePaths);
         if ($collection->isEmpty()) {
             $io->error(sprintf('No Fluid templates found at: %s', implode(', ', $paths)));
 

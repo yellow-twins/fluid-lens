@@ -13,11 +13,13 @@ final class Config
 {
     /**
      * @param list<string> $paths
+     * @param list<string> $excludePaths
      * @param list<string> $lintOnly
      * @param list<string> $lintExclude
      */
     public function __construct(
         public readonly array $paths = [],
+        public readonly array $excludePaths = [],
         public readonly array $lintOnly = [],
         public readonly array $lintExclude = [],
         public readonly ?string $lintFailOn = null,

@@ -16,6 +16,11 @@ return [
         'packages/',
     ],
 
+    // Glob patterns of files to skip (matched against each file path).
+    'exclude' => [
+        '*/Tests/*',
+    ],
+
     'lint' => [
         // Rules to skip by default (e.g. the advisory notices). See `lint --list-rules`.
         'exclude' => [

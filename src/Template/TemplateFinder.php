@@ -23,12 +23,14 @@ final class TemplateFinder
     private const SKIPPED_SEGMENTS = ['/vendor/', '/node_modules/', '/.git/'];
 
     /**
+     * @param list<string> $exclude glob patterns matched against each file path
+     *
      * @return list<string>
      */
-    public function find(string $path): array
+    public function find(string $path, array $exclude = []): array
     {
         if (is_file($path)) {
-            return [$path];
+            return $this->isExcluded($path, $exclude) ? [] : [$path];
         }
 
         if (!is_dir($path)) {
@@ -41,7 +43,11 @@ final class TemplateFinder
         );
 
         foreach ($iterator as $entry) {
-            if ($entry instanceof SplFileInfo && $this->isTemplate($entry)) {
+            if (
+                $entry instanceof SplFileInfo
+                && $this->isTemplate($entry)
+                && !$this->isExcluded($entry->getPathname(), $exclude)
+            ) {
                 $files[] = $entry->getPathname();
             }
         }
@@ -49,6 +55,20 @@ final class TemplateFinder
         sort($files);
 
         return $files;
+    }
+
+    /**
+     * @param list<string> $patterns
+     */
+    private function isExcluded(string $path, array $patterns): bool
+    {
+        foreach ($patterns as $pattern) {
+            if (fnmatch($pattern, $path)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function isTemplate(SplFileInfo $entry): bool

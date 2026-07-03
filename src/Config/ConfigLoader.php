@@ -55,6 +55,7 @@ final class ConfigLoader
 
         return new Config(
             paths: $this->stringList($data['paths'] ?? null),
+            excludePaths: $this->stringList($data['exclude'] ?? null),
             lintOnly: $this->stringList($lint['only'] ?? null),
             lintExclude: $this->stringList($lint['exclude'] ?? null),
             lintFailOn: $this->stringOrNull($lint['failOn'] ?? null),

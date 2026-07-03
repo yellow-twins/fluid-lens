@@ -36,15 +36,16 @@ final class TemplateCollector
      * files that more than one path resolves to.
      *
      * @param list<string> $paths
+     * @param list<string> $exclude glob patterns of files to skip
      */
-    public function collectPaths(array $paths): TemplateCollection
+    public function collectPaths(array $paths, array $exclude = []): TemplateCollection
     {
         $templates = [];
         $skipped = [];
         $seen = [];
 
         foreach ($paths as $path) {
-            $collection = $this->collect($path);
+            $collection = $this->collect($path, $exclude);
             foreach ($collection->templates as $template) {
                 if (!isset($seen[$template->file])) {
                     $seen[$template->file] = true;
@@ -59,12 +60,15 @@ final class TemplateCollector
         return new TemplateCollection($templates, $skipped);
     }
 
-    public function collect(string $path): TemplateCollection
+    /**
+     * @param list<string> $exclude glob patterns of files to skip
+     */
+    public function collect(string $path, array $exclude = []): TemplateCollection
     {
         $templates = [];
         $skipped = [];
 
-        foreach ($this->finder->find($path) as $file) {
+        foreach ($this->finder->find($path, $exclude) as $file) {
             $source = @file_get_contents($file);
             if ($source === false) {
                 $skipped[] = ['file' => $file, 'reason' => 'could not be read'];

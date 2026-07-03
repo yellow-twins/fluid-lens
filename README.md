@@ -115,6 +115,7 @@ What it checks statically:
 | `wcag.aria-role` — unknown WAI-ARIA `role` value | warning | 4.1.2 (A) |
 | `wcag.aria-attr` — unknown `aria-*` attribute (typo) | warning | 4.1.2 (A) |
 | `wcag.aria-hidden-focusable` — `aria-hidden` on a focusable element | warning | 4.1.2 (A) |
+| `wcag.aria-expanded-role` — `aria-expanded` on a non-interactive element (broken accordion) | warning | 4.1.2 (A) |
 | `wcag.iframe-title` — `<iframe>` without a `title` | warning | 4.1.2 (A) |
 | `wcag.media-autoplay` — audio/unmuted video that autoplays sound | warning | 1.4.2 (A) |
 | `wcag.heading-order` — heading levels skipped | warning | 1.3.1 (A) |
@@ -213,7 +214,8 @@ win over the file, which in turn wins over the built-in defaults.
 
 return [
     'paths'   => ['packages/'],                       // scanned when no path is given
-    'lint'    => ['exclude' => ['style.inline']],     // or 'only' => [...]
+    'exclude' => ['*/Tests/*'],                       // glob patterns of files to skip
+    'lint'    => ['exclude' => ['style.inline']],     // or 'only' => [...], 'failOn' => 'error'
     'analyze' => ['minElements' => 3, 'minOccurrences' => 2],
     'similar' => ['threshold' => 0.85, 'minElements' => 4],
 ];

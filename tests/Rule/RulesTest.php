@@ -19,6 +19,7 @@ use YellowTwins\FluidLens\Rule\Wcag\MetaViewportRule;
 use YellowTwins\FluidLens\Rule\Rule;
 use YellowTwins\FluidLens\Rule\Severity;
 use YellowTwins\FluidLens\Rule\Wcag\AriaAttributeRule;
+use YellowTwins\FluidLens\Rule\Wcag\AriaExpandedRoleRule;
 use YellowTwins\FluidLens\Rule\Wcag\AriaHiddenFocusableRule;
 use YellowTwins\FluidLens\Rule\Wcag\AriaRoleRule;
 use YellowTwins\FluidLens\Rule\Wcag\ButtonNameRule;
@@ -75,6 +76,15 @@ final class RulesTest extends TestCase
         self::assertCount(1, $this->runRule(new AriaRoleRule(), '<div role="buton">x</div>'));
         self::assertSame([], $this->runRule(new AriaRoleRule(), '<div role="button">x</div>'));
         self::assertSame([], $this->runRule(new AriaRoleRule(), '<div role="{dynamic}">x</div>'));
+    }
+
+    public function testAriaExpandedOnNonInteractiveElementWarns(): void
+    {
+        $rule = new AriaExpandedRoleRule();
+        self::assertCount(1, $this->runRule($rule, '<div aria-expanded="false">Section</div>'));
+        self::assertSame([], $this->runRule($rule, '<button aria-expanded="false">Section</button>'));
+        self::assertSame([], $this->runRule($rule, '<div role="button" aria-expanded="true">Section</div>'));
+        self::assertSame([], $this->runRule($rule, '<a href="#p" aria-expanded="false">Section</a>'));
     }
 
     public function testUnknownAriaAttributeWarns(): void

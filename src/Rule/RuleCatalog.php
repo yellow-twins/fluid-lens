@@ -25,6 +25,7 @@ final class RuleCatalog
         'wcag.aria-role' => 'Unknown WAI-ARIA role',
         'wcag.aria-attr' => 'Unknown aria-* attribute',
         'wcag.aria-hidden-focusable' => 'aria-hidden element that is still focusable',
+        'wcag.aria-expanded-role' => 'aria-expanded on a non-interactive element',
         'wcag.iframe-title' => '<iframe> without a title',
         'wcag.media-autoplay' => 'Media that autoplays sound',
         'wcag.meta-viewport' => 'Viewport meta tag that blocks zoom',

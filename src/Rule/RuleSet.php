@@ -11,6 +11,7 @@ use YellowTwins\FluidLens\Rule\BestPractice\TargetBlankRelRule;
 use YellowTwins\FluidLens\Rule\Markup\PictureImgRule;
 use YellowTwins\FluidLens\Rule\Markup\PictureSourceSrcsetRule;
 use YellowTwins\FluidLens\Rule\Wcag\AriaAttributeRule;
+use YellowTwins\FluidLens\Rule\Wcag\AriaExpandedRoleRule;
 use YellowTwins\FluidLens\Rule\Wcag\AriaHiddenFocusableRule;
 use YellowTwins\FluidLens\Rule\Wcag\AriaRoleRule;
 use YellowTwins\FluidLens\Rule\Wcag\ButtonNameRule;
@@ -49,6 +50,7 @@ final class RuleSet
             new AriaRoleRule(),
             new AriaAttributeRule(),
             new AriaHiddenFocusableRule(),
+            new AriaExpandedRoleRule(),
             new IframeTitleRule(),
             new MediaAutoplayRule(),
             new MetaViewportRule(),
