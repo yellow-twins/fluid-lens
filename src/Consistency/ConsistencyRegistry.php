@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace YellowTwins\FluidLens\Consistency;
 
+use YellowTwins\FluidLens\Consistency\Check\AnimationCheck;
 use YellowTwins\FluidLens\Consistency\Check\CssFrameworkCheck;
 use YellowTwins\FluidLens\Consistency\Check\IconSetCheck;
+use YellowTwins\FluidLens\Consistency\Check\JsFrameworkCheck;
+use YellowTwins\FluidLens\Consistency\Check\LazyLoadCheck;
+use YellowTwins\FluidLens\Consistency\Check\LightboxCheck;
 use YellowTwins\FluidLens\Consistency\Check\SliderLibraryCheck;
 use YellowTwins\FluidLens\Support\Wildcard;
 
@@ -24,6 +28,10 @@ final class ConsistencyRegistry
             new SliderLibraryCheck(),
             new IconSetCheck(),
             new CssFrameworkCheck(),
+            new JsFrameworkCheck(),
+            new LightboxCheck(),
+            new AnimationCheck(),
+            new LazyLoadCheck(),
         ];
     }
 

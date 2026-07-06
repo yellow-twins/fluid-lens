@@ -14,7 +14,14 @@ use YellowTwins\FluidLens\Rule\Wcag\AriaAttributeRule;
 use YellowTwins\FluidLens\Rule\Wcag\AriaExpandedRoleRule;
 use YellowTwins\FluidLens\Rule\Wcag\AriaHiddenFocusableRule;
 use YellowTwins\FluidLens\Rule\Wcag\AbbrTitleRule;
+use YellowTwins\FluidLens\Rule\Wcag\AccesskeyDuplicateRule;
 use YellowTwins\FluidLens\Rule\Wcag\AltFilenameRule;
+use YellowTwins\FluidLens\Rule\Wcag\AriaControlsTargetRule;
+use YellowTwins\FluidLens\Rule\Wcag\AriaRefTargetRule;
+use YellowTwins\FluidLens\Rule\Wcag\AutocompleteTokenRule;
+use YellowTwins\FluidLens\Rule\Wcag\LangXmlMismatchRule;
+use YellowTwins\FluidLens\Rule\Wcag\NavLabelRule;
+use YellowTwins\FluidLens\Rule\Wcag\TargetBlankPurposeRule;
 use YellowTwins\FluidLens\Rule\Wcag\AriaBooleanRule;
 use YellowTwins\FluidLens\Rule\Wcag\AriaRoleRule;
 use YellowTwins\FluidLens\Rule\Wcag\DirValidRule;
@@ -99,6 +106,13 @@ final class RuleSet
             new SummaryDetailsRule(),
             new ScopeValueRule(),
             new AbbrTitleRule(),
+            new AutocompleteTokenRule(),
+            new LangXmlMismatchRule(),
+            new AccesskeyDuplicateRule(),
+            new TargetBlankPurposeRule(),
+            new AriaControlsTargetRule(),
+            new AriaRefTargetRule(),
+            new NavLabelRule(),
             new InlineStyleRule(),
             new InlineSvgRule(),
             new PreferFluidImageRule(),

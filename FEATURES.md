@@ -8,15 +8,11 @@ aren't lost.
 The `consistency` command runs project-wide checks that fail when competing
 implementations are mixed. A new check is one class extending
 `ClassSignatureCheck` (or implementing `ConsistencyCheck`) plus a registry entry.
-Already shipped: `sliders`, `icons`, `css`.
+Already shipped: `sliders`, `icons`, `css`, `js-framework`, `lightbox`,
+`animation`, `lazyload`.
 
 Candidate checks (detectable by signature classes / attributes):
 
-- **JS interaction frameworks** — Alpine (`x-data`, `x-show`), Vue (`v-if`, `v-for`),
-  htmx (`hx-*`), Stimulus (`data-controller`), Turbo, jQuery patterns.
-- **Lightbox / gallery** — Fancybox, GLightbox, Magnific Popup, Lightgallery, PhotoSwipe.
-- **Animation** — AOS (`data-aos`), Animate.css (`animate__*`), WOW.js (`wow`), GSAP.
-- **Lazy-loading strategy** — native `loading="lazy"` vs lazysizes (`data-src`, `lazyload`) vs lozad.
 - **Map libraries** — Leaflet (`leaflet-*`), Mapbox (`mapboxgl-*`), Google Maps embeds.
 - **Video players** — Plyr (`plyr`), Video.js (`video-js`), native `<video>`.
 - **Grid / masonry** — Isotope, Masonry, Packery.
@@ -39,10 +35,12 @@ consistency, QR/chart libraries.
 
 - Colour contrast, runtime focus order, reflow, motion — need a rendered page;
   keep pointing users to axe/Lighthouse (the honest "needs runtime check" note).
-- `autocomplete` attribute valid tokens (1.3.5).
-- `lang` on elements with `xml:lang` mismatch.
-- Orphaned `aria-controls` / `aria-describedby` targets (careful: cross-partial
-  false positives — same reason `label-for` is a conservative notice).
+
+Shipped since: `autocomplete` token validation (1.3.5), `lang`/`xml:lang`
+mismatch, duplicate `accesskey`, `target="_blank"` new-tab purpose (3.2.5 AAA),
+orphaned `aria-controls` / `aria-labelledby` / `aria-describedby` targets and
+unlabelled navigation landmarks (all conservative notices — cross-partial FP
+risk, same stance as `label-for`).
 
 ## Tooling
 

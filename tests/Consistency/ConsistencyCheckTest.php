@@ -5,8 +5,12 @@ declare(strict_types=1);
 namespace YellowTwins\FluidLens\Tests\Consistency;
 
 use PHPUnit\Framework\TestCase;
+use YellowTwins\FluidLens\Consistency\Check\AnimationCheck;
 use YellowTwins\FluidLens\Consistency\Check\CssFrameworkCheck;
 use YellowTwins\FluidLens\Consistency\Check\IconSetCheck;
+use YellowTwins\FluidLens\Consistency\Check\JsFrameworkCheck;
+use YellowTwins\FluidLens\Consistency\Check\LazyLoadCheck;
+use YellowTwins\FluidLens\Consistency\Check\LightboxCheck;
 use YellowTwins\FluidLens\Consistency\Check\SliderLibraryCheck;
 use YellowTwins\FluidLens\Consistency\ConsistencyRegistry;
 use YellowTwins\FluidLens\Parser\TemplateParser;
@@ -60,6 +64,58 @@ final class ConsistencyCheckTest extends TestCase
         ]);
 
         self::assertTrue($result->isEmpty());
+    }
+
+    public function testJsFrameworkCheckDetectsMixByAttributes(): void
+    {
+        $result = (new JsFrameworkCheck())->analyze([
+            $this->template('a.html', '<div x-data="{}" x-show="open">a</div>'),
+            $this->template('b.html', '<button hx-get="/more">b</button>'),
+        ]);
+
+        self::assertTrue($result->isInconsistent());
+        $labels = array_map(static fn ($usage): string => $usage->label, $result->usages);
+        self::assertContains('Alpine.js', $labels);
+        self::assertContains('htmx', $labels);
+    }
+
+    public function testLightboxCheckDetectsByClassOrAttribute(): void
+    {
+        $result = (new LightboxCheck())->analyze([
+            $this->template('a.html', '<a class="glightbox" href="x.jpg">a</a>'),
+            $this->template('b.html', '<a data-fancybox="g" href="y.jpg">b</a>'),
+        ]);
+
+        self::assertTrue($result->isInconsistent());
+        $labels = array_map(static fn ($usage): string => $usage->label, $result->usages);
+        self::assertContains('GLightbox', $labels);
+        self::assertContains('Fancybox', $labels);
+    }
+
+    public function testAnimationCheckDetectsAosAndAnimateCss(): void
+    {
+        $result = (new AnimationCheck())->analyze([
+            $this->template('a.html', '<div class="animate__animated animate__fadeIn">a</div>'),
+            $this->template('b.html', '<div data-aos="fade-up">b</div>'),
+        ]);
+
+        self::assertTrue($result->isInconsistent());
+        $labels = array_map(static fn ($usage): string => $usage->label, $result->usages);
+        self::assertContains('Animate.css', $labels);
+        self::assertContains('AOS', $labels);
+    }
+
+    public function testLazyLoadCheckDetectsNativeVsLibrary(): void
+    {
+        $result = (new LazyLoadCheck())->analyze([
+            $this->template('a.html', '<img loading="lazy" src="a.jpg"/>'),
+            $this->template('b.html', '<img class="lazyload" data-src="b.jpg"/>'),
+        ]);
+
+        self::assertTrue($result->isInconsistent());
+        $labels = array_map(static fn ($usage): string => $usage->label, $result->usages);
+        self::assertContains('Native (loading attribute)', $labels);
+        self::assertContains('lazysizes', $labels);
     }
 
     public function testSelectByNameAndWildcard(): void

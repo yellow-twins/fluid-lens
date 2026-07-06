@@ -34,7 +34,12 @@ All notable changes to this project are documented here. The format is based on
   without captions, `<marquee>`/`<blink>`, non-descriptive link text, invalid
   `lang`/`dir`/`scope` values, empty `<label>`, invalid boolean ARIA values,
   timed meta refresh, `<summary>` outside `<details>`, and `<abbr>` without a
-  title (WCAG 3.1.4, Level AAA). Statically decidable A/AA/AAA markup criteria are
+  title (WCAG 3.1.4, Level AAA). Also covers invalid `autocomplete` autofill
+  tokens (1.3.5), `lang`/`xml:lang` disagreement, duplicate `accesskey`,
+  `target="_blank"` links that never announce the new tab (3.2.5, Level AAA), and
+  `aria-controls`/`aria-labelledby`/`aria-describedby` references and multiple
+  navigation landmarks without labels (conservative notices, since the target may
+  live in another partial). Statically decidable A/AA/AAA markup criteria are
   covered; the rest keeps its honest "needs runtime check" note.
   `--only` /
   `--exclude` accept a trailing `*` wildcard (e.g. `wcag.*`), and `--list-rules`
@@ -46,9 +51,12 @@ All notable changes to this project are documented here. The format is based on
   Splide, Owl, Flickity, Keen, Tiny Slider) and `icons` (Font Awesome, Bootstrap
   Icons, Material, Ionicons, Feather, Remix, Boxicons) and `css` (Bootstrap,
   Tailwind, Bulma, Foundation, via distinctive signatures — including regex
-  signatures for Tailwind's variant prefixes and colour scale), selectable with
-  `--only` / `--exclude` (wildcards allowed) and listed with `--list-checks`.
-  Duplicated markup is covered by `analyze`/`similar`.
+  signatures for Tailwind's variant prefixes and colour scale), `js-framework`
+  (Alpine, Vue, htmx, Stimulus, Turbo — recognised by their attributes),
+  `lightbox` (Fancybox, GLightbox, Magnific Popup, Lightgallery, PhotoSwipe),
+  `animation` (Animate.css, WOW.js, AOS) and `lazyload` (native `loading` vs
+  lazysizes/lozad), selectable with `--only` / `--exclude` (wildcards allowed) and
+  listed with `--list-checks`. Duplicated markup is covered by `analyze`/`similar`.
 - `parse` command: dump a single template's structural node tree.
 - Inline suppression via `{# @fluidlint-ignore #}` markers.
 - PHPStan-style baseline (`--generate-baseline` / `--baseline`) for adopting the

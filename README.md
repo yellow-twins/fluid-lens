@@ -99,6 +99,10 @@ Built-in checks (selectable with `--only` / `--exclude`, wildcards allowed):
 | `sliders` | Slider/carousel libraries (Swiper, Slick, Glide, Splide, Owl, Flickity, Keen, Tiny Slider) |
 | `icons`   | Icon sets (Font Awesome, Bootstrap Icons, Material, Ionicons, Feather, Remix, Boxicons) |
 | `css`     | CSS frameworks (Bootstrap, Tailwind, Bulma, Foundation) via distinctive signatures |
+| `js-framework` | JS interaction frameworks (Alpine, Vue, htmx, Stimulus, Turbo) via their attributes |
+| `lightbox` | Lightbox/gallery libraries (Fancybox, GLightbox, Magnific Popup, Lightgallery, PhotoSwipe) |
+| `animation` | Animation libraries (Animate.css, WOW.js, AOS) |
+| `lazyload` | Lazy-loading strategy (native `loading` vs lazysizes/lozad/vanilla-lazyload) |
 
 Duplicated *markup* (e.g. the same slider copied into five templates) is caught
 by `analyze` and `similar` — extract it into one shared Partial.
@@ -163,6 +167,13 @@ What it checks statically:
 | `wcag.summary-details` — `<summary>` outside a `<details>` | warning | 1.3.1 (A) |
 | `wcag.scope-value` — invalid table-cell `scope` value | warning | 1.3.1 (A) |
 | `wcag.abbr-title` — `<abbr>` without a `title` | notice | 3.1.4 (**AAA**) |
+| `wcag.autocomplete-token` — invalid `autocomplete` autofill token | warning | 1.3.5 (AA) |
+| `wcag.lang-xml-mismatch` — `lang` and `xml:lang` disagree | warning | 3.1.2 (AA) |
+| `wcag.accesskey-duplicate` — duplicate `accesskey` in one document | warning | 2.1.1 (A) |
+| `wcag.target-blank-purpose` — `target="_blank"` without announcing the new tab | notice | 3.2.5 (**AAA**) |
+| `wcag.aria-controls-target` — `aria-controls` with no matching id in the template | notice | 4.1.2 (A) |
+| `wcag.aria-ref-target` — `aria-labelledby`/`aria-describedby` with no matching id | notice | 1.3.1 (A) |
+| `wcag.nav-label` — multiple navigation landmarks without labels | notice | 1.3.1 (A) |
 | `markup.picture-img` — `<picture>` without an `<img>` fallback | warning | — |
 | `markup.source-srcset` — `<source>` in `<picture>` without `srcset` | warning | — |
 | `style.inline` — inline `style` attribute | notice | — |
