@@ -10,12 +10,17 @@ use YellowTwins\FluidLens\Consistency\Check\CookieConsentCheck;
 use YellowTwins\FluidLens\Consistency\Check\CssFrameworkCheck;
 use YellowTwins\FluidLens\Consistency\Check\GridLayoutCheck;
 use YellowTwins\FluidLens\Consistency\Check\IconSetCheck;
+use YellowTwins\FluidLens\Consistency\Check\ImageApproachCheck;
 use YellowTwins\FluidLens\Consistency\Check\JsFrameworkCheck;
 use YellowTwins\FluidLens\Consistency\Check\LazyLoadCheck;
 use YellowTwins\FluidLens\Consistency\Check\LightboxCheck;
+use YellowTwins\FluidLens\Consistency\Check\LinkApproachCheck;
 use YellowTwins\FluidLens\Consistency\Check\MapLibraryCheck;
+use YellowTwins\FluidLens\Consistency\Check\NamespaceStyleCheck;
+use YellowTwins\FluidLens\Consistency\Check\RenderStyleCheck;
 use YellowTwins\FluidLens\Consistency\Check\SliderLibraryCheck;
 use YellowTwins\FluidLens\Consistency\Check\TooltipLibraryCheck;
+use YellowTwins\FluidLens\Consistency\Check\TranslateStyleCheck;
 use YellowTwins\FluidLens\Consistency\Check\VideoPlayerCheck;
 use YellowTwins\FluidLens\Consistency\ConsistencyRegistry;
 use YellowTwins\FluidLens\Parser\TemplateParser;
@@ -187,6 +192,84 @@ final class ConsistencyCheckTest extends TestCase
         $labels = array_map(static fn ($usage): string => $usage->label, $result->usages);
         self::assertContains('OneTrust', $labels);
         self::assertContains('Klaro', $labels);
+    }
+
+    public function testNamespaceStyleDetectsTagVsInline(): void
+    {
+        $result = (new NamespaceStyleCheck())->analyze([
+            $this->template('a.html', '<html data-namespace-typo3-fluid="true"><body>a</body></html>'),
+            $this->template('b.html', '{namespace x=Vendor\Ext\ViewHelpers}<div>b</div>'),
+        ]);
+
+        self::assertTrue($result->isInconsistent());
+        self::assertCount(2, $result->usages);
+    }
+
+    public function testRenderStyleConsistentWhenOnlyTagForm(): void
+    {
+        $result = (new RenderStyleCheck())->analyze([
+            $this->template('a.html', '<f:render partial="A"/>'),
+            $this->template('b.html', '<f:render partial="B"/>'),
+        ]);
+
+        self::assertFalse($result->isInconsistent());
+        self::assertSame('<f:render> tag', $result->usages[0]->label);
+    }
+
+    public function testRenderStyleDetectsInlineMix(): void
+    {
+        $result = (new RenderStyleCheck())->analyze([
+            $this->template('a.html', '<f:render partial="A"/>'),
+            $this->template('b.html', "<div>{f:render(partial: 'B')}</div>"),
+        ]);
+
+        self::assertTrue($result->isInconsistent());
+    }
+
+    public function testTranslateStyleDetectsInlineInAttribute(): void
+    {
+        $result = (new TranslateStyleCheck())->analyze([
+            $this->template('a.html', '<f:translate key="hello"/>'),
+            $this->template('b.html', "<img alt=\"{f:translate(key: 'x')}\" src=\"/a.png\"/>"),
+        ]);
+
+        self::assertTrue($result->isInconsistent());
+        $labels = array_map(static fn ($usage): string => $usage->label, $result->usages);
+        self::assertContains('<f:translate> tag', $labels);
+        self::assertContains('{f:translate(...)} inline', $labels);
+    }
+
+    public function testImageApproachIgnoresStaticImg(): void
+    {
+        // A raw <img> with a static src is a legitimate asset, not a mixed approach.
+        $result = (new ImageApproachCheck())->analyze([
+            $this->template('a.html', '<f:image src="x"/>'),
+            $this->template('b.html', '<img src="/logo.svg"/>'),
+        ]);
+
+        self::assertFalse($result->isInconsistent());
+
+        $mixed = (new ImageApproachCheck())->analyze([
+            $this->template('a.html', '<f:image src="x"/>'),
+            $this->template('c.html', '<img src="{file.publicUrl}"/>'),
+        ]);
+        self::assertTrue($mixed->isInconsistent());
+    }
+
+    public function testLinkApproachDetectsDynamicRawAnchor(): void
+    {
+        $result = (new LinkApproachCheck())->analyze([
+            $this->template('a.html', '<f:link.page pageUid="1">p</f:link.page>'),
+            $this->template('b.html', '<a href="{url}">x</a>'),
+        ]);
+
+        self::assertTrue($result->isInconsistent());
+
+        // A static anchor alone is not a competing approach.
+        $static = (new LinkApproachCheck())->analyze([
+            $this->template('c.html', '<a href="/about">about</a>'),
+        ]);
+        self::assertFalse($static->isInconsistent());
     }
 
     public function testSelectByNameAndWildcard(): void

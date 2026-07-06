@@ -17,14 +17,19 @@ were deliberately left out of `tooltip` — `data-bs-toggle` cannot be told apar
 from a dropdown/modal without the runtime attribute value, which a static check
 does not have.
 
-Fluid-specific consistency (needs ViewHelper/tag inspection, not just classes):
+Fluid-specific consistency — shipped: `namespace-style`, `render-style`,
+`translate-style`, `image-approach`, `link-approach`. These inspect the parse
+tree (element names for the tag form, opaque `{...}` text/attribute values for
+the inline form) rather than CSS classes. `image-approach`/`link-approach` only
+count a raw `<img>`/`<a>` when its `src`/`href` is a Fluid expression, so static
+assets and external links don't create false mixes.
 
-- **Namespace declaration style** — `xmlns:f=...` vs `{namespace f=...}` mixed.
-- **Partial render style** — `<f:render partial>` vs inline `{f:render(partial:...)}`.
-- **Translation approach** — `<f:translate>` vs inline `{f:translate()}` vs raw `LLL:`.
-- **Image approach** — `<f:image>` vs `<f:uri.image>`+`<img>` vs raw `<img>`.
-- **Link approach** — `<f:link.typolink>` vs `<f:link.page>` vs raw `<a href>`.
-- **Icon rendering method** — inline `<svg>` vs icon font vs `<img>` (method, not set).
+Still open:
+
+- **Icon rendering method** — inline `<svg>` vs icon font vs `<img>`. Deliberately
+  *not* built: distinguishing an SVG/`<img>` icon from an illustration or photo
+  is not statically decidable, so it would be guesswork. (Which icon *set* is
+  mixed is already covered by `icons`.)
 
 Explicitly out of scope for now (per project decision): date/time format
 consistency, QR/chart libraries.

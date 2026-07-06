@@ -108,6 +108,17 @@ Built-in checks (selectable with `--only` / `--exclude`, wildcards allowed):
 | `grid` | Grid/masonry libraries (Isotope, Masonry, Packery, Muuri) |
 | `tooltip` | Tooltip libraries (Tippy.js, Foundation, hint.css, microtip) |
 | `cookie-consent` | Cookie-consent solutions (Cookiebot, OneTrust, Osano, Klaro, Borlabs) |
+| `namespace-style` | Fluid namespace declared on `<html>` vs inline `{namespace ...}` |
+| `render-style` | Partial render as `<f:render>` tag vs inline `{f:render(...)}` |
+| `translate-style` | Translation as `<f:translate>` tag vs inline `{f:translate(...)}` |
+| `image-approach` | `<f:image>` vs `<f:uri.image>` vs raw `<img>` with a dynamic `src` |
+| `link-approach` | Fluid link ViewHelper vs raw `<a>` with a dynamic `href` |
+
+The last five are Fluid-specific: they compare *how* the project writes Fluid
+(tag vs inline syntax, ViewHelper vs raw markup), not which CSS library it uses.
+`image-approach`/`link-approach` only count a raw `<img>`/`<a>` when its
+`src`/`href` is a Fluid expression — a static asset or external link is not a
+competing approach.
 
 Duplicated *markup* (e.g. the same slider copied into five templates) is caught
 by `analyze` and `similar` — extract it into one shared Partial.

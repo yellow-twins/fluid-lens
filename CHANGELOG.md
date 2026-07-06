@@ -59,8 +59,15 @@ All notable changes to this project are documented here. The format is based on
   `video-player` (Plyr, Video.js, MediaElement.js, JW Player, Flowplayer),
   `grid` (Isotope, Masonry, Packery, Muuri), `tooltip` (Tippy.js, Foundation,
   hint.css, microtip) and `cookie-consent` (Cookiebot, OneTrust, Osano, Klaro,
-  Borlabs), selectable with `--only` / `--exclude` (wildcards allowed) and
-  listed with `--list-checks`. Duplicated markup is covered by `analyze`/`similar`.
+  Borlabs). Plus Fluid-specific checks comparing *how* the project writes Fluid:
+  `namespace-style` (`<html>` attribute vs inline `{namespace ...}`),
+  `render-style` and `translate-style` (tag vs inline ViewHelper syntax),
+  `image-approach` (`<f:image>` vs `<f:uri.image>` vs raw `<img>` with a dynamic
+  `src`) and `link-approach` (Fluid link ViewHelper vs raw `<a>` with a dynamic
+  `href`) — the raw-markup variants only count when the URL is a Fluid
+  expression, so static assets and external links are ignored. All selectable
+  with `--only` / `--exclude` (wildcards allowed) and listed with
+  `--list-checks`. Duplicated markup is covered by `analyze`/`similar`.
 - `parse` command: dump a single template's structural node tree.
 - Inline suppression via `{# @fluidlint-ignore #}` markers.
 - PHPStan-style baseline (`--generate-baseline` / `--baseline`) for adopting the

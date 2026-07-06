@@ -9,12 +9,17 @@ use YellowTwins\FluidLens\Consistency\Check\CookieConsentCheck;
 use YellowTwins\FluidLens\Consistency\Check\CssFrameworkCheck;
 use YellowTwins\FluidLens\Consistency\Check\GridLayoutCheck;
 use YellowTwins\FluidLens\Consistency\Check\IconSetCheck;
+use YellowTwins\FluidLens\Consistency\Check\ImageApproachCheck;
 use YellowTwins\FluidLens\Consistency\Check\JsFrameworkCheck;
 use YellowTwins\FluidLens\Consistency\Check\LazyLoadCheck;
 use YellowTwins\FluidLens\Consistency\Check\LightboxCheck;
+use YellowTwins\FluidLens\Consistency\Check\LinkApproachCheck;
 use YellowTwins\FluidLens\Consistency\Check\MapLibraryCheck;
+use YellowTwins\FluidLens\Consistency\Check\NamespaceStyleCheck;
+use YellowTwins\FluidLens\Consistency\Check\RenderStyleCheck;
 use YellowTwins\FluidLens\Consistency\Check\SliderLibraryCheck;
 use YellowTwins\FluidLens\Consistency\Check\TooltipLibraryCheck;
+use YellowTwins\FluidLens\Consistency\Check\TranslateStyleCheck;
 use YellowTwins\FluidLens\Consistency\Check\VideoPlayerCheck;
 use YellowTwins\FluidLens\Support\Wildcard;
 
@@ -42,6 +47,11 @@ final class ConsistencyRegistry
             new GridLayoutCheck(),
             new TooltipLibraryCheck(),
             new CookieConsentCheck(),
+            new NamespaceStyleCheck(),
+            new RenderStyleCheck(),
+            new TranslateStyleCheck(),
+            new ImageApproachCheck(),
+            new LinkApproachCheck(),
         ];
     }
 
