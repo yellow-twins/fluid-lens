@@ -45,6 +45,43 @@ orphaned `aria-controls` / `aria-labelledby` / `aria-describedby` targets and
 unlabelled navigation landmarks (all conservative notices — cross-partial FP
 risk, same stance as `label-for`).
 
+## Other template engines (Twig, Blade, …)
+
+The analyzer's core is HTML-based, not Fluid-based: it parses templates as HTML5
+fragments and reasons about the element tree. Other engines' control flow
+degrades to opaque text exactly like Fluid's `{...}` — verified by probe:
+
+- **Twig**: `<ul><li class="item">` parse as elements; `{% for %}` / `{{ }}`
+  become text nodes. Structure intact.
+- **Blade**: `<div>` and even components like `<x-card :title>` parse as
+  elements; `@foreach` / `{{ }}` become text. Structure intact.
+
+So the *engine-agnostic* half already works on any HTML-producing template:
+`analyze` / `similar` (structural clone & near-duplicate detection), the WCAG /
+a11y `lint` rules, and the CSS/JS-library `consistency` checks (sliders, icons,
+css, js-framework, lightbox, animation, lazyload, maps, video-player, grid,
+tooltip, cookie-consent).
+
+What proper multi-engine support would need:
+
+- **File discovery** — `TemplateFinder` only globs `.html` today; add `.twig`,
+  `.blade.php`, etc. (configurable extensions).
+- **An engine switch** — so the Fluid-only rules/checks don't run (and mislead)
+  elsewhere: `image.prefer-fluid` and the five Fluid consistency checks
+  (`namespace-style`, `render-style`, `translate-style`, `image-approach`,
+  `link-approach`) are Fluid-specific; on other engines they are noise or
+  "none found".
+- **Per-engine rule/check sets** — the real value-add: e.g. Twig-specific or
+  Blade-specific conventions (`{% include %}` vs `{{ include() }}`, `@include`
+  vs `<x-component>`), the equivalents of the Fluid style checks.
+- **Engine-specific preprocessing** (maybe) — untested edge cases such as
+  `{% ... %}` mid-attribute or exotic Blade directives may parse oddly.
+
+Positioning stays Fluid-first (that's the USP); this would be an opt-in
+expansion, not a rename. A natural first step is just the extension globbing +
+engine switch, which unlocks the HTML/a11y/clone half for Twig and Blade with
+little effort.
+
 ## Tooling
 
 - Auto-fix (`--fix`) for a subset of findings — generate the Partial + `<f:render>`
