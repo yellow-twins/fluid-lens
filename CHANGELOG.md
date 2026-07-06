@@ -71,8 +71,11 @@ All notable changes to this project are documented here. The format is based on
 - `parse` command: dump a single template's structural node tree.
 - Inline suppression via `{# @fluidlint-ignore #}` markers.
 - PHPStan-style baseline (`--generate-baseline` / `--baseline`) for adopting the
-  tool on existing projects — for both duplicate detection and `lint` (the lint
-  baseline matches by rule, file and message, ignoring line numbers).
+  tool on existing projects — for duplicate detection, `lint` (matched by rule,
+  file and message, ignoring line numbers) and `consistency` (records the
+  variants each check accepts today, then fails only when a variant appears that
+  the baseline does not list — a third implementation joining an already-mixed
+  check, or a previously consistent check becoming mixed).
 - Human-readable and `--json` output for every command; `lint --sarif` emits
   SARIF 2.1.0 for GitHub code scanning.
 - Project configuration via a `fluid-lens.php` file (`paths`, path `exclude`

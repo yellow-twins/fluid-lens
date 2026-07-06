@@ -52,4 +52,3 @@ risk, same stance as `label-for`).
 - `--exclude-path` also honoured by a per-command CLI (done) and a global config
   (done); consider `.gitignore`-style ignore files.
 - SARIF for `analyze`/`similar` as well as `lint`.
-- A `--baseline` for the `consistency` command.

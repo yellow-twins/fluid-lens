@@ -11,6 +11,8 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use YellowTwins\FluidLens\Baseline\ConsistencyBaseline;
+use YellowTwins\FluidLens\Config\Config;
 use YellowTwins\FluidLens\Config\OptionResolver;
 use YellowTwins\FluidLens\Consistency\ConsistencyCheck;
 use YellowTwins\FluidLens\Consistency\ConsistencyRegistry;
@@ -33,6 +35,8 @@ final class ConsistencyCommand extends Command
 {
     use ResolvesConfig;
 
+    private const DEFAULT_BASELINE = 'fluid-lens-consistency-baseline.json';
+
     public function __construct(
         private readonly TemplateCollector $collector = new TemplateCollector(),
         private readonly OptionResolver $options = new OptionResolver(),
@@ -49,6 +53,14 @@ final class ConsistencyCommand extends Command
             ->addOption('only', null, InputOption::VALUE_REQUIRED, 'Run only these checks (comma-separated names).')
             ->addOption('exclude', null, InputOption::VALUE_REQUIRED, 'Skip these checks (comma-separated names).')
             ->addOption('list-checks', null, InputOption::VALUE_NONE, 'List the available checks and exit.')
+            ->addOption('baseline', null, InputOption::VALUE_REQUIRED, 'Suppress checks accepted in this baseline.')
+            ->addOption(
+                'generate-baseline',
+                null,
+                InputOption::VALUE_OPTIONAL,
+                'Write the current consistency state to a baseline file and exit.',
+                false,
+            )
             ->addOption('json', null, InputOption::VALUE_NONE, 'Output findings as JSON instead of a report.');
     }
 
@@ -82,6 +94,12 @@ final class ConsistencyCommand extends Command
         );
         $fileCount = count($collection->templates);
 
+        if ($this->isGeneratingBaseline($input)) {
+            return $this->writeBaseline($io, $input, $results);
+        }
+
+        $results = $this->applyBaseline($io, $input, $config, $results);
+
         if ($input->getOption('json') === true) {
             $output->writeln((new JsonConsistencyReporter())->render($results, $fileCount));
         } else {
@@ -89,6 +107,52 @@ final class ConsistencyCommand extends Command
         }
 
         return $this->hasInconsistency($results) ? Command::FAILURE : Command::SUCCESS;
+    }
+
+    private function isGeneratingBaseline(InputInterface $input): bool
+    {
+        return $input->getOption('generate-baseline') !== false;
+    }
+
+    /**
+     * @param list<ConsistencyResult> $results
+     */
+    private function writeBaseline(SymfonyStyle $io, InputInterface $input, array $results): int
+    {
+        $value = $input->getOption('generate-baseline');
+        $path = is_string($value) && $value !== '' ? $value : self::DEFAULT_BASELINE;
+
+        $baseline = ConsistencyBaseline::fromResults($results);
+        if (file_put_contents($path, $baseline->toJson()) === false) {
+            $io->error(sprintf('Could not write baseline to: %s', $path));
+
+            return Command::FAILURE;
+        }
+
+        $io->success(sprintf('Wrote baseline for %d check(s) to %s.', $baseline->count(), $path));
+
+        return Command::SUCCESS;
+    }
+
+    /**
+     * @param list<ConsistencyResult> $results
+     *
+     * @return list<ConsistencyResult>
+     */
+    private function applyBaseline(SymfonyStyle $io, InputInterface $input, Config $config, array $results): array
+    {
+        $path = $this->options->string($input, 'baseline', $config->consistencyBaseline);
+        if ($path === null) {
+            return $results;
+        }
+
+        if (!is_file($path)) {
+            $io->warning(sprintf('Baseline file not found, reporting everything: %s', $path));
+
+            return $results;
+        }
+
+        return ConsistencyBaseline::fromJson((string) file_get_contents($path))->filter($results);
     }
 
     /**

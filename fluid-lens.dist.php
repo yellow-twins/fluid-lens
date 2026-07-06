@@ -47,4 +47,10 @@ return [
         'threshold' => 0.8,
         'minElements' => 4,
     ],
+
+    'consistency' => [
+        // Accept the current mix and only fail on new drift (see
+        // consistency --generate-baseline).
+        // 'baseline' => 'fluid-lens-consistency-baseline.json',
+    ],
 ];

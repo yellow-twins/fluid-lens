@@ -29,6 +29,7 @@ final class Config
         public readonly ?string $baseline = null,
         public readonly ?float $similarThreshold = null,
         public readonly ?int $similarMinElements = null,
+        public readonly ?string $consistencyBaseline = null,
     ) {
     }
 

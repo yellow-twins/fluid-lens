@@ -242,6 +242,16 @@ vendor/bin/fluid-lens lint path/to/Templates/ --generate-baseline
 vendor/bin/fluid-lens lint path/to/Templates/ --baseline=fluid-lens-lint-baseline.json
 ```
 
+`consistency` has one too — accept today's mix and only fail on new drift. It
+records the set of variants each check currently sees, then fails when a variant
+appears that the baseline does not list (a third library joining an already-mixed
+check, or a previously consistent check becoming mixed):
+
+```bash
+vendor/bin/fluid-lens consistency path/to/Templates/ --generate-baseline
+vendor/bin/fluid-lens consistency path/to/Templates/ --baseline=fluid-lens-consistency-baseline.json
+```
+
 ### Parse a single template
 
 Dump the structural tree the analyzer sees — handy for understanding a finding:
@@ -307,7 +317,7 @@ given, fall back to the configured `paths`.
 | `analyze` | Find exact duplicated structures          | `--min-elements`, `--min-occurrences`, `--baseline`, `--generate-baseline`, `--json` |
 | `similar` | Find near-duplicate structures            | `--threshold`, `--min-elements`, `--json` |
 | `lint`    | Check accessibility (WCAG) & best practices | `--only`, `--exclude`, `--fail-on`, `--baseline`, `--generate-baseline`, `--list-rules`, `--json`, `--sarif` |
-| `consistency` | Flag mixed slider/icon/other implementations | `--only`, `--exclude`, `--list-checks`, `--json` |
+| `consistency` | Flag mixed slider/icon/other implementations | `--only`, `--exclude`, `--list-checks`, `--baseline`, `--generate-baseline`, `--json` |
 | `parse`   | Dump one template's structural node tree  | `--json` |
 
 ### Exit codes

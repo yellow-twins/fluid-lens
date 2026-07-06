@@ -52,6 +52,7 @@ final class ConfigLoader
         $lint = $this->section($data, 'lint');
         $analyze = $this->section($data, 'analyze');
         $similar = $this->section($data, 'similar');
+        $consistency = $this->section($data, 'consistency');
 
         return new Config(
             paths: $this->stringList($data['paths'] ?? null),
@@ -65,6 +66,7 @@ final class ConfigLoader
             baseline: $this->stringOrNull($analyze['baseline'] ?? null),
             similarThreshold: $this->floatOrNull($similar['threshold'] ?? null),
             similarMinElements: $this->intOrNull($similar['minElements'] ?? null),
+            consistencyBaseline: $this->stringOrNull($consistency['baseline'] ?? null),
         );
     }
 
