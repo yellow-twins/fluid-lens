@@ -54,8 +54,12 @@ All notable changes to this project are documented here. The format is based on
   signatures for Tailwind's variant prefixes and colour scale), `js-framework`
   (Alpine, Vue, htmx, Stimulus, Turbo — recognised by their attributes),
   `lightbox` (Fancybox, GLightbox, Magnific Popup, Lightgallery, PhotoSwipe),
-  `animation` (Animate.css, WOW.js, AOS) and `lazyload` (native `loading` vs
-  lazysizes/lozad), selectable with `--only` / `--exclude` (wildcards allowed) and
+  `animation` (Animate.css, WOW.js, AOS), `lazyload` (native `loading` vs
+  lazysizes/lozad), `maps` (Leaflet, Mapbox GL, OpenLayers, Google Maps),
+  `video-player` (Plyr, Video.js, MediaElement.js, JW Player, Flowplayer),
+  `grid` (Isotope, Masonry, Packery, Muuri), `tooltip` (Tippy.js, Foundation,
+  hint.css, microtip) and `cookie-consent` (Cookiebot, OneTrust, Osano, Klaro,
+  Borlabs), selectable with `--only` / `--exclude` (wildcards allowed) and
   listed with `--list-checks`. Duplicated markup is covered by `analyze`/`similar`.
 - `parse` command: dump a single template's structural node tree.
 - Inline suppression via `{# @fluidlint-ignore #}` markers.

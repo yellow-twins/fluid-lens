@@ -6,12 +6,17 @@ namespace YellowTwins\FluidLens\Tests\Consistency;
 
 use PHPUnit\Framework\TestCase;
 use YellowTwins\FluidLens\Consistency\Check\AnimationCheck;
+use YellowTwins\FluidLens\Consistency\Check\CookieConsentCheck;
 use YellowTwins\FluidLens\Consistency\Check\CssFrameworkCheck;
+use YellowTwins\FluidLens\Consistency\Check\GridLayoutCheck;
 use YellowTwins\FluidLens\Consistency\Check\IconSetCheck;
 use YellowTwins\FluidLens\Consistency\Check\JsFrameworkCheck;
 use YellowTwins\FluidLens\Consistency\Check\LazyLoadCheck;
 use YellowTwins\FluidLens\Consistency\Check\LightboxCheck;
+use YellowTwins\FluidLens\Consistency\Check\MapLibraryCheck;
 use YellowTwins\FluidLens\Consistency\Check\SliderLibraryCheck;
+use YellowTwins\FluidLens\Consistency\Check\TooltipLibraryCheck;
+use YellowTwins\FluidLens\Consistency\Check\VideoPlayerCheck;
 use YellowTwins\FluidLens\Consistency\ConsistencyRegistry;
 use YellowTwins\FluidLens\Parser\TemplateParser;
 use YellowTwins\FluidLens\Template\ParsedTemplate;
@@ -116,6 +121,72 @@ final class ConsistencyCheckTest extends TestCase
         $labels = array_map(static fn ($usage): string => $usage->label, $result->usages);
         self::assertContains('Native (loading attribute)', $labels);
         self::assertContains('lazysizes', $labels);
+    }
+
+    public function testMapCheckDetectsMix(): void
+    {
+        $result = (new MapLibraryCheck())->analyze([
+            $this->template('a.html', '<div class="leaflet-container">a</div>'),
+            $this->template('b.html', '<div class="mapboxgl-map">b</div>'),
+        ]);
+
+        self::assertTrue($result->isInconsistent());
+        $labels = array_map(static fn ($usage): string => $usage->label, $result->usages);
+        self::assertContains('Leaflet', $labels);
+        self::assertContains('Mapbox GL', $labels);
+    }
+
+    public function testVideoPlayerCheckDetectsMix(): void
+    {
+        $result = (new VideoPlayerCheck())->analyze([
+            $this->template('a.html', '<div class="plyr">a</div>'),
+            $this->template('b.html', '<div class="video-js vjs-default-skin">b</div>'),
+        ]);
+
+        self::assertTrue($result->isInconsistent());
+        $labels = array_map(static fn ($usage): string => $usage->label, $result->usages);
+        self::assertContains('Plyr', $labels);
+        self::assertContains('Video.js', $labels);
+    }
+
+    public function testGridCheckReportsOneLibraryAsConsistent(): void
+    {
+        $result = (new GridLayoutCheck())->analyze([
+            $this->template('a.html', '<div class="masonry">a</div>'),
+            $this->template('b.html', '<div class="masonry">b</div>'),
+        ]);
+
+        self::assertFalse($result->isInconsistent());
+        self::assertSame('Masonry', $result->usages[0]->label);
+    }
+
+    public function testTooltipCheckDetectsByAttributeAndIgnoresBootstrapToggle(): void
+    {
+        $result = (new TooltipLibraryCheck())->analyze([
+            $this->template('a.html', '<button data-tippy-content="Hi">a</button>'),
+            $this->template('b.html', '<span data-tooltip="Hint">b</span>'),
+            // A generic Bootstrap toggle must not register as a tooltip library.
+            $this->template('c.html', '<button data-bs-toggle="dropdown">c</button>'),
+        ]);
+
+        self::assertTrue($result->isInconsistent());
+        $labels = array_map(static fn ($usage): string => $usage->label, $result->usages);
+        self::assertContains('Tippy.js', $labels);
+        self::assertContains('Foundation', $labels);
+        self::assertCount(2, $result->usages);
+    }
+
+    public function testCookieConsentCheckDetectsMix(): void
+    {
+        $result = (new CookieConsentCheck())->analyze([
+            $this->template('a.html', '<div class="onetrust-banner">a</div>'),
+            $this->template('b.html', '<div class="klaro">b</div>'),
+        ]);
+
+        self::assertTrue($result->isInconsistent());
+        $labels = array_map(static fn ($usage): string => $usage->label, $result->usages);
+        self::assertContains('OneTrust', $labels);
+        self::assertContains('Klaro', $labels);
     }
 
     public function testSelectByNameAndWildcard(): void

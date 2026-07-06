@@ -5,12 +5,17 @@ declare(strict_types=1);
 namespace YellowTwins\FluidLens\Consistency;
 
 use YellowTwins\FluidLens\Consistency\Check\AnimationCheck;
+use YellowTwins\FluidLens\Consistency\Check\CookieConsentCheck;
 use YellowTwins\FluidLens\Consistency\Check\CssFrameworkCheck;
+use YellowTwins\FluidLens\Consistency\Check\GridLayoutCheck;
 use YellowTwins\FluidLens\Consistency\Check\IconSetCheck;
 use YellowTwins\FluidLens\Consistency\Check\JsFrameworkCheck;
 use YellowTwins\FluidLens\Consistency\Check\LazyLoadCheck;
 use YellowTwins\FluidLens\Consistency\Check\LightboxCheck;
+use YellowTwins\FluidLens\Consistency\Check\MapLibraryCheck;
 use YellowTwins\FluidLens\Consistency\Check\SliderLibraryCheck;
+use YellowTwins\FluidLens\Consistency\Check\TooltipLibraryCheck;
+use YellowTwins\FluidLens\Consistency\Check\VideoPlayerCheck;
 use YellowTwins\FluidLens\Support\Wildcard;
 
 /**
@@ -32,6 +37,11 @@ final class ConsistencyRegistry
             new LightboxCheck(),
             new AnimationCheck(),
             new LazyLoadCheck(),
+            new MapLibraryCheck(),
+            new VideoPlayerCheck(),
+            new GridLayoutCheck(),
+            new TooltipLibraryCheck(),
+            new CookieConsentCheck(),
         ];
     }
 

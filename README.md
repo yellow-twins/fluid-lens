@@ -103,6 +103,11 @@ Built-in checks (selectable with `--only` / `--exclude`, wildcards allowed):
 | `lightbox` | Lightbox/gallery libraries (Fancybox, GLightbox, Magnific Popup, Lightgallery, PhotoSwipe) |
 | `animation` | Animation libraries (Animate.css, WOW.js, AOS) |
 | `lazyload` | Lazy-loading strategy (native `loading` vs lazysizes/lozad/vanilla-lazyload) |
+| `maps` | Map libraries (Leaflet, Mapbox GL, OpenLayers, Google Maps) |
+| `video-player` | Video players (Plyr, Video.js, MediaElement.js, JW Player, Flowplayer) |
+| `grid` | Grid/masonry libraries (Isotope, Masonry, Packery, Muuri) |
+| `tooltip` | Tooltip libraries (Tippy.js, Foundation, hint.css, microtip) |
+| `cookie-consent` | Cookie-consent solutions (Cookiebot, OneTrust, Osano, Klaro, Borlabs) |
 
 Duplicated *markup* (e.g. the same slider copied into five templates) is caught
 by `analyze` and `similar` — extract it into one shared Partial.

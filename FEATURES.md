@@ -9,15 +9,13 @@ The `consistency` command runs project-wide checks that fail when competing
 implementations are mixed. A new check is one class extending
 `ClassSignatureCheck` (or implementing `ConsistencyCheck`) plus a registry entry.
 Already shipped: `sliders`, `icons`, `css`, `js-framework`, `lightbox`,
-`animation`, `lazyload`.
+`animation`, `lazyload`, `maps`, `video-player`, `grid`, `tooltip`,
+`cookie-consent`.
 
-Candidate checks (detectable by signature classes / attributes):
-
-- **Map libraries** — Leaflet (`leaflet-*`), Mapbox (`mapboxgl-*`), Google Maps embeds.
-- **Video players** — Plyr (`plyr`), Video.js (`video-js`), native `<video>`.
-- **Grid / masonry** — Isotope, Masonry, Packery.
-- **Tooltip / popover** — Tippy (`tippy`), Bootstrap tooltips, Popper.
-- **Cookie consent** — multiple libraries fighting for the same job.
+The class/attribute-signature cluster is now complete. Note: Bootstrap tooltips
+were deliberately left out of `tooltip` — `data-bs-toggle` cannot be told apart
+from a dropdown/modal without the runtime attribute value, which a static check
+does not have.
 
 Fluid-specific consistency (needs ViewHelper/tag inspection, not just classes):
 
