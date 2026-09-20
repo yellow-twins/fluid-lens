@@ -7,6 +7,7 @@ namespace YellowTwins\FluidLens\Rule\Wcag;
 use YellowTwins\FluidLens\Parser\Node;
 use YellowTwins\FluidLens\Rule\AbstractElementRule;
 use YellowTwins\FluidLens\Rule\Severity;
+use YellowTwins\FluidLens\Support\Attributes;
 
 /**
  * Media that autoplays sound gives the user no chance to stop it. Audio that
@@ -40,7 +41,7 @@ final class MediaAutoplayRule extends AbstractElementRule
 
     private function autoplaysSound(Node $element): bool
     {
-        if ($element->attribute('autoplay') === null) {
+        if (Attributes::value($element, 'autoplay') === null) {
             return false;
         }
 
@@ -48,6 +49,6 @@ final class MediaAutoplayRule extends AbstractElementRule
             return true;
         }
 
-        return $element->name === 'video' && $element->attribute('muted') === null;
+        return $element->name === 'video' && Attributes::value($element, 'muted') === null;
     }
 }

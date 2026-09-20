@@ -65,6 +65,6 @@ final class FormLabelRule extends AbstractElementRule
     private function isExemptInput(Node $element): bool
     {
         return $element->name === 'input'
-            && in_array($element->attribute('type'), self::SELF_LABELLING_INPUT_TYPES, true);
+            && in_array(Attributes::value($element, 'type'), self::SELF_LABELLING_INPUT_TYPES, true);
     }
 }

@@ -141,6 +141,11 @@ example fail only on errors while you adopt it:
 vendor/bin/fluid-lens lint packages/ --fail-on=error
 ```
 
+The rules read the markup as it will be rendered: the array arguments TYPO3's
+tag-based ViewHelpers expand into attributes — `aria="{label: 'Close'}"`,
+`data="{…}"` and `additionalAttributes="{…}"` — are resolved before a rule sees
+them, so a link labelled that way counts as labelled.
+
 What it checks statically:
 
 | Rule | Severity | WCAG |

@@ -7,6 +7,7 @@ namespace YellowTwins\FluidLens\Rule\Wcag;
 use YellowTwins\FluidLens\Parser\Node;
 use YellowTwins\FluidLens\Rule\AbstractElementRule;
 use YellowTwins\FluidLens\Rule\Severity;
+use YellowTwins\FluidLens\Support\Attributes;
 
 /**
  * The viewport meta tag must not disable zoom: users with low vision rely on
@@ -28,11 +29,11 @@ final class MetaViewportRule extends AbstractElementRule
 
     protected function inspect(Node $element, string $file): array
     {
-        if ($element->name !== 'meta' || $element->attribute('name') !== 'viewport') {
+        if ($element->name !== 'meta' || Attributes::value($element, 'name') !== 'viewport') {
             return [];
         }
 
-        $content = str_replace(' ', '', strtolower($element->attribute('content') ?? ''));
+        $content = str_replace(' ', '', strtolower(Attributes::value($element, 'content') ?? ''));
         foreach (self::ZOOM_BLOCKERS as $blocker) {
             if (str_contains($content, $blocker)) {
                 return [

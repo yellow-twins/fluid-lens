@@ -64,7 +64,7 @@ final class AriaRefTargetRule implements Rule
      */
     private function missingTargets(Node $element, string $attribute, array $ids): array
     {
-        $value = $element->attribute($attribute);
+        $value = Attributes::value($element, $attribute);
         if ($value === null || trim($value) === '' || Attributes::isDynamic($value)) {
             return [];
         }

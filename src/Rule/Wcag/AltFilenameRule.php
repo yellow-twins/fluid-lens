@@ -30,7 +30,7 @@ final class AltFilenameRule extends AbstractElementRule
             return [];
         }
 
-        $alt = $element->attribute('alt');
+        $alt = Attributes::value($element, 'alt');
         if ($alt === null || Attributes::isDynamic($alt) || preg_match(self::FILENAME, trim($alt)) !== 1) {
             return [];
         }

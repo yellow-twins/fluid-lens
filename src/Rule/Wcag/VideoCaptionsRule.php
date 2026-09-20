@@ -7,6 +7,7 @@ namespace YellowTwins\FluidLens\Rule\Wcag;
 use YellowTwins\FluidLens\Parser\Node;
 use YellowTwins\FluidLens\Rule\AbstractElementRule;
 use YellowTwins\FluidLens\Rule\Severity;
+use YellowTwins\FluidLens\Support\Attributes;
 use YellowTwins\FluidLens\Support\Elements;
 
 /**
@@ -44,7 +45,7 @@ final class VideoCaptionsRule extends AbstractElementRule
         foreach (Elements::all($element) as $descendant) {
             if (
                 $descendant->name === 'track'
-                && in_array($descendant->attribute('kind'), ['captions', 'subtitles'], true)
+                && in_array(Attributes::value($descendant, 'kind'), ['captions', 'subtitles'], true)
             ) {
                 return true;
             }

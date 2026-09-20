@@ -27,7 +27,7 @@ final class ScopeValueRule extends AbstractElementRule
             return [];
         }
 
-        $scope = $element->attribute('scope');
+        $scope = Attributes::value($element, 'scope');
         if (
             $scope === null || Attributes::isDynamic($scope)
             || in_array(strtolower($scope), ['col', 'row', 'colgroup', 'rowgroup'], true)

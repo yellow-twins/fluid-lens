@@ -7,6 +7,7 @@ namespace YellowTwins\FluidLens\Rule\Wcag;
 use YellowTwins\FluidLens\Parser\Node;
 use YellowTwins\FluidLens\Rule\AbstractElementRule;
 use YellowTwins\FluidLens\Rule\Severity;
+use YellowTwins\FluidLens\Support\Attributes;
 use YellowTwins\FluidLens\Support\Roles;
 
 /**
@@ -24,7 +25,7 @@ final class TabSelectedRule extends AbstractElementRule
 
     protected function inspect(Node $element, string $file): array
     {
-        if (!Roles::has($element, 'tab') || $element->attribute('aria-selected') !== null) {
+        if (!Roles::has($element, 'tab') || Attributes::value($element, 'aria-selected') !== null) {
             return [];
         }
 

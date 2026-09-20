@@ -11,13 +11,21 @@ use YellowTwins\FluidLens\Parser\NodeType;
  * Decides, conservatively, whether an element exposes an accessible name.
  *
  * Fluid content is often dynamic, so this errs towards assuming a name exists
- * (text expressions, translate ViewHelpers, a labelled image, or an explicit
- * aria-label/title all count) to avoid false positives — it only reports the
- * clear cases such as an icon-only link with nothing but an SVG inside.
+ * (text expressions, content-rendering ViewHelpers, a labelled image, or an
+ * explicit aria-label/title all count) to avoid false positives — it only
+ * reports the clear cases such as an icon-only link with nothing but an SVG
+ * inside.
  */
 final class AccessibleName
 {
     private const LABELLING_ATTRIBUTES = ['aria-label', 'aria-labelledby', 'title'];
+
+    /**
+     * Tag name fragments of ViewHelpers that emit content of their own. Matched
+     * in lowercase because the parser lowercases tag names (`f:cObject` arrives
+     * as `f:cobject`).
+     */
+    private const TEXT_PRODUCING_VIEWHELPERS = ['translate', 'format.', 'render', 'cobject'];
 
     public static function isPresent(Node $element): bool
     {
@@ -25,6 +33,11 @@ final class AccessibleName
             if (Attributes::present($element, $attribute)) {
                 return true;
             }
+        }
+
+        // An unreadable aria="{attributes}" may well carry the label.
+        if (TagAttributes::hasOpaqueArgument($element)) {
+            return true;
         }
 
         return self::hasTextContent($element);
@@ -51,12 +64,16 @@ final class AccessibleName
 
     private static function elementProducesText(Node $element): bool
     {
-        // A translate/format ViewHelper renders text, and an image with alt text
-        // contributes an accessible name to its container.
-        if (str_contains($element->name, 'translate') || str_contains($element->name, 'format.')) {
-            return true;
+        // A ViewHelper that renders text or foreign content (a partial, a
+        // section, a TypoScript object) may produce the name; what it renders
+        // cannot be known statically, so assume it does.
+        foreach (self::TEXT_PRODUCING_VIEWHELPERS as $needle) {
+            if (str_contains($element->name, $needle)) {
+                return true;
+            }
         }
 
+        // An image with alt text contributes an accessible name to its container.
         return self::isImage($element) && Attributes::present($element, 'alt');
     }
 

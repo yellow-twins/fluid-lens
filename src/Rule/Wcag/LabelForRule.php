@@ -39,7 +39,7 @@ final class LabelForRule implements Rule
 
         $findings = [];
         foreach ($elements as $element) {
-            $for = $element->name === 'label' ? $element->attribute('for') : null;
+            $for = $element->name === 'label' ? Attributes::value($element, 'for') : null;
             if ($for === null || $for === '' || Attributes::isDynamic($for) || isset($ids[$for])) {
                 continue;
             }
@@ -80,7 +80,7 @@ final class LabelForRule implements Rule
     {
         $ids = [];
         foreach ($elements as $element) {
-            $id = $element->attribute('id');
+            $id = Attributes::value($element, 'id');
             if ($id !== null && $id !== '' && !Attributes::isDynamic($id)) {
                 $ids[$id] = true;
             }

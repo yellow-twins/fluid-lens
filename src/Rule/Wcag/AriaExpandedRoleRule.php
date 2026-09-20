@@ -39,7 +39,7 @@ final class AriaExpandedRoleRule extends AbstractElementRule
 
     protected function inspect(Node $element, string $file): array
     {
-        if ($element->attribute('aria-expanded') === null || $this->isInteractive($element)) {
+        if (Attributes::value($element, 'aria-expanded') === null || $this->isInteractive($element)) {
             return [];
         }
 
@@ -69,7 +69,7 @@ final class AriaExpandedRoleRule extends AbstractElementRule
 
     private function hasInteractiveRole(Node $element): bool
     {
-        foreach (preg_split('/\s+/', trim($element->attribute('role') ?? '')) ?: [] as $role) {
+        foreach (preg_split('/\s+/', trim(Attributes::value($element, 'role') ?? '')) ?: [] as $role) {
             if (in_array($role, self::INTERACTIVE_ROLES, true)) {
                 return true;
             }

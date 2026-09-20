@@ -85,3 +85,20 @@ All notable changes to this project are documented here. The format is based on
 - Optional native TYPO3 commands (`fluidlens:analyze`, `fluidlens:similar`).
 - CI running phpcs (PSR-12), PHPStan level 7, Psalm level 6 and PHPUnit on
   PHP 8.1–8.4.
+
+## [0.8.1] - 2026-09-20
+
+### Fixed
+
+- Accessibility rules now understand the array arguments that TYPO3's
+  tag-based ViewHelpers expand into attributes: `aria="{label: '…'}"`,
+  `data="{…}"` and `additionalAttributes="{…}"`. Previously they were opaque,
+  so a link labelled with `aria="{label: '…'}"` was reported as having no
+  discernible text (`wcag.link-name`) — the same blind spot affected
+  `wcag.button-name`, `wcag.form-label` and every `wcag.aria-*` rule. As a
+  side effect a typo inside the array, such as `aria="{lable: '…'}"`, is now
+  caught by `wcag.aria-attr`. An argument that cannot be read statically
+  (`aria="{attributes}"`) silences the name rules instead of guessing.
+- A link, button or heading whose only content is `<f:render>` or `<f:cObject>`
+  is no longer reported as having no discernible text: what those render cannot
+  be known statically, so the conservative assumption is that they produce text.

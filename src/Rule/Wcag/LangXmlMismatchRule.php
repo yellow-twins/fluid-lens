@@ -24,8 +24,8 @@ final class LangXmlMismatchRule extends AbstractElementRule
 
     protected function inspect(Node $element, string $file): array
     {
-        $lang = $element->attribute('lang');
-        $xmlLang = $element->attribute('xml:lang');
+        $lang = Attributes::value($element, 'lang');
+        $xmlLang = Attributes::value($element, 'xml:lang');
         if ($lang === null || $xmlLang === null) {
             return [];
         }

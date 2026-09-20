@@ -7,6 +7,7 @@ namespace YellowTwins\FluidLens\Rule\Wcag;
 use YellowTwins\FluidLens\Parser\Node;
 use YellowTwins\FluidLens\Rule\AbstractElementRule;
 use YellowTwins\FluidLens\Rule\Severity;
+use YellowTwins\FluidLens\Support\TagAttributes;
 
 /**
  * An `aria-*` attribute name must be a real WAI-ARIA state or property; a typo
@@ -43,7 +44,7 @@ final class AriaAttributeRule extends AbstractElementRule
     protected function inspect(Node $element, string $file): array
     {
         $findings = [];
-        foreach (array_keys($element->attributes) as $attribute) {
+        foreach (array_keys(TagAttributes::resolve($element)) as $attribute) {
             if (str_starts_with($attribute, 'aria-') && !in_array($attribute, self::VALID, true)) {
                 $findings[] = $this->finding(
                     $element,

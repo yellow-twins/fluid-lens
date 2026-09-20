@@ -7,6 +7,7 @@ namespace YellowTwins\FluidLens\Rule\Wcag;
 use YellowTwins\FluidLens\Parser\Node;
 use YellowTwins\FluidLens\Rule\AbstractElementRule;
 use YellowTwins\FluidLens\Rule\Severity;
+use YellowTwins\FluidLens\Support\Attributes;
 
 /**
  * A document's `<html>` element must declare its language.
@@ -26,7 +27,7 @@ final class HtmlLangRule extends AbstractElementRule
 
     protected function inspect(Node $element, string $file): array
     {
-        if ($element->name !== 'html' || $element->attribute('lang') !== null) {
+        if ($element->name !== 'html' || Attributes::value($element, 'lang') !== null) {
             return [];
         }
 
@@ -47,7 +48,7 @@ final class HtmlLangRule extends AbstractElementRule
 
     private function isFluidNamespaceWrapper(Node $element): bool
     {
-        if ($element->attribute('data-namespace-typo3-fluid') !== null) {
+        if (Attributes::value($element, 'data-namespace-typo3-fluid') !== null) {
             return true;
         }
 

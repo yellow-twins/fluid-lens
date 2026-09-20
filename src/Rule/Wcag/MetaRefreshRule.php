@@ -7,6 +7,7 @@ namespace YellowTwins\FluidLens\Rule\Wcag;
 use YellowTwins\FluidLens\Parser\Node;
 use YellowTwins\FluidLens\Rule\AbstractElementRule;
 use YellowTwins\FluidLens\Rule\Severity;
+use YellowTwins\FluidLens\Support\Attributes;
 
 /**
  * A `<meta http-equiv="refresh">` reloads or redirects the page on a timer the
@@ -23,7 +24,7 @@ final class MetaRefreshRule extends AbstractElementRule
 
     protected function inspect(Node $element, string $file): array
     {
-        if ($element->name !== 'meta' || strtolower($element->attribute('http-equiv') ?? '') !== 'refresh') {
+        if ($element->name !== 'meta' || strtolower(Attributes::value($element, 'http-equiv') ?? '') !== 'refresh') {
             return [];
         }
 

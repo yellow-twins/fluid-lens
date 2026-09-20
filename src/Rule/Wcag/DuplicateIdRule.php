@@ -31,7 +31,7 @@ final class DuplicateIdRule implements Rule
 
         $findings = [];
         foreach ($elements as $element) {
-            $id = $element->attribute('id');
+            $id = Attributes::value($element, 'id');
             if ($id !== null && ($counts[$id] ?? 0) > 1) {
                 $findings[] = new Finding(
                     $this->name(),
@@ -56,7 +56,7 @@ final class DuplicateIdRule implements Rule
     {
         $counts = [];
         foreach ($elements as $element) {
-            $id = $element->attribute('id');
+            $id = Attributes::value($element, 'id');
             if ($id !== null && trim($id) !== '' && !Attributes::isDynamic($id)) {
                 $counts[$id] = ($counts[$id] ?? 0) + 1;
             }

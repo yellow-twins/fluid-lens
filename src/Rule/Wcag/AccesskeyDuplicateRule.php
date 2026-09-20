@@ -69,7 +69,7 @@ final class AccesskeyDuplicateRule implements Rule
 
     private function keyOf(Node $element): ?string
     {
-        $key = $element->attribute('accesskey');
+        $key = Attributes::value($element, 'accesskey');
         if ($key === null || trim($key) === '' || Attributes::isDynamic($key)) {
             return null;
         }

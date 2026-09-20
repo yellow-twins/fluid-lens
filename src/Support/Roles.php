@@ -14,7 +14,7 @@ final class Roles
 {
     public static function has(Node $node, string $role): bool
     {
-        foreach (preg_split('/\s+/', trim($node->attribute('role') ?? '')) ?: [] as $token) {
+        foreach (preg_split('/\s+/', trim(Attributes::value($node, 'role') ?? '')) ?: [] as $token) {
             if ($token === $role) {
                 return true;
             }

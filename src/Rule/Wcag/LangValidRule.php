@@ -26,7 +26,7 @@ final class LangValidRule extends AbstractElementRule
 
     protected function inspect(Node $element, string $file): array
     {
-        $lang = $element->attribute('lang');
+        $lang = Attributes::value($element, 'lang');
         if ($lang === null || $lang === '' || Attributes::isDynamic($lang) || preg_match(self::TAG, $lang) === 1) {
             return [];
         }

@@ -18,9 +18,18 @@ final class Attributes
      */
     public static function present(Node $node, string $name): bool
     {
-        $value = $node->attribute($name);
+        $value = self::value($node, $name);
 
         return $value !== null && trim($value) !== '';
+    }
+
+    /**
+     * The attribute's effective value, including the attributes TYPO3 ViewHelpers
+     * expand from their `aria`, `data` and `additionalAttributes` arguments.
+     */
+    public static function value(Node $node, string $name): ?string
+    {
+        return TagAttributes::value($node, $name);
     }
 
     /**

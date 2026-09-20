@@ -7,6 +7,7 @@ namespace YellowTwins\FluidLens\Rule\Wcag;
 use YellowTwins\FluidLens\Parser\Node;
 use YellowTwins\FluidLens\Rule\AbstractElementRule;
 use YellowTwins\FluidLens\Rule\Severity;
+use YellowTwins\FluidLens\Support\Attributes;
 
 /**
  * An `<input type="image">` is an image button and needs `alt` text to name it.
@@ -22,11 +23,11 @@ final class InputImageAltRule extends AbstractElementRule
 
     protected function inspect(Node $element, string $file): array
     {
-        if ($element->name !== 'input' || $element->attribute('type') !== 'image') {
+        if ($element->name !== 'input' || Attributes::value($element, 'type') !== 'image') {
             return [];
         }
 
-        if ($element->attribute('alt') !== null || $element->attribute('aria-label') !== null) {
+        if (Attributes::value($element, 'alt') !== null || Attributes::value($element, 'aria-label') !== null) {
             return [];
         }
 

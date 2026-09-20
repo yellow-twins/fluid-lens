@@ -7,6 +7,7 @@ namespace YellowTwins\FluidLens\Rule\Wcag;
 use YellowTwins\FluidLens\Parser\Node;
 use YellowTwins\FluidLens\Rule\AbstractElementRule;
 use YellowTwins\FluidLens\Rule\Severity;
+use YellowTwins\FluidLens\Support\Attributes;
 
 /**
  * Every image needs a text alternative: an `alt` attribute must be present.
@@ -23,7 +24,7 @@ final class ImageAltRule extends AbstractElementRule
 
     protected function inspect(Node $element, string $file): array
     {
-        if (!$this->isImage($element) || $element->attribute('alt') !== null) {
+        if (!$this->isImage($element) || Attributes::value($element, 'alt') !== null) {
             return [];
         }
 

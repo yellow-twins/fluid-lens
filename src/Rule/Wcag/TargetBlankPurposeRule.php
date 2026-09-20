@@ -32,7 +32,7 @@ final class TargetBlankPurposeRule extends AbstractElementRule
 
     protected function inspect(Node $element, string $file): array
     {
-        if (!$this->isLink($element) || $element->attribute('target') !== '_blank') {
+        if (!$this->isLink($element) || Attributes::value($element, 'target') !== '_blank') {
             return [];
         }
 

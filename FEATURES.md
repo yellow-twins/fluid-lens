@@ -45,6 +45,12 @@ orphaned `aria-controls` / `aria-labelledby` / `aria-describedby` targets and
 unlabelled navigation landmarks (all conservative notices — cross-partial FP
 risk, same stance as `label-for`).
 
+Resolved: the `aria` / `data` / `additionalAttributes` array arguments of
+TYPO3's tag-based ViewHelpers are expanded before the rules run, so an element
+labelled through them is no longer reported as unlabelled. Open follow-up: the
+same expansion is not applied to the consistency checks, which deliberately
+compare the literal syntax a template uses.
+
 ## Other template engines (Twig, Blade, …)
 
 The analyzer's core is HTML-based, not Fluid-based: it parses templates as HTML5

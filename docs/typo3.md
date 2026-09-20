@@ -48,6 +48,34 @@ Add a shortcut to your project's `composer.json`:
 The command exits non-zero when it finds duplication, so the job fails on new
 duplication while the baseline keeps existing findings from blocking the build.
 
+## ViewHelper arguments that become attributes
+
+Fluid Lens analyses markup, not Fluid, so a ViewHelper argument reaches a rule
+as a plain attribute. TYPO3's `AbstractTagBasedViewHelper` expands three of them
+into real attributes at render time, and the accessibility rules resolve them
+the same way:
+
+| Argument | Becomes |
+|----------|---------|
+| `aria="{label: 'Close'}"` | `aria-label="Close"` |
+| `data="{controller: 'modal'}"` | `data-controller="modal"` |
+| `additionalAttributes="{'aria-label': 'Search'}"` | `aria-label="Search"` |
+
+```html
+<!-- Counts as labelled — no wcag.link-name finding. -->
+<f:link.action action="show" aria="{label: 'Open {item.title}'}">
+  <f:render section="card-content" arguments="{_all}"/>
+</f:link.action>
+```
+
+Only the literal array form is read. An argument built at runtime, such as
+`aria="{ariaAttributes}"`, cannot be inspected statically — the rules then stay
+silent rather than report a label they cannot see.
+
+For the same reason, an element whose only content is `<f:render>` or
+`<f:cObject>` is assumed to produce text: the partial, section or TypoScript
+object is not resolved, so claiming it renders nothing would be a guess.
+
 ## Native TYPO3 commands (optional)
 
 If you prefer to run the analysers through the TYPO3 binary, fluid-lens ships a

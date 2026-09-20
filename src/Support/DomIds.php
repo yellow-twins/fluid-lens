@@ -21,7 +21,7 @@ final class DomIds
     {
         $ids = [];
         foreach (Elements::all($tree) as $element) {
-            $id = $element->attribute('id');
+            $id = Attributes::value($element, 'id');
             if ($id !== null && trim($id) !== '' && !Attributes::isDynamic($id)) {
                 $ids[trim($id)] = true;
             }

@@ -7,6 +7,7 @@ namespace YellowTwins\FluidLens\Rule\BestPractice;
 use YellowTwins\FluidLens\Parser\Node;
 use YellowTwins\FluidLens\Rule\AbstractElementRule;
 use YellowTwins\FluidLens\Rule\Severity;
+use YellowTwins\FluidLens\Support\Attributes;
 
 /**
  * A link opening in a new tab should carry `rel="noopener"` so the new page
@@ -21,11 +22,11 @@ final class TargetBlankRelRule extends AbstractElementRule
 
     protected function inspect(Node $element, string $file): array
     {
-        if ($element->name !== 'a' || $element->attribute('target') !== '_blank') {
+        if ($element->name !== 'a' || Attributes::value($element, 'target') !== '_blank') {
             return [];
         }
 
-        if (str_contains(strtolower($element->attribute('rel') ?? ''), 'noopener')) {
+        if (str_contains(strtolower(Attributes::value($element, 'rel') ?? ''), 'noopener')) {
             return [];
         }
 

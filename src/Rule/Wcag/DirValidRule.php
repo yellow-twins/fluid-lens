@@ -23,7 +23,7 @@ final class DirValidRule extends AbstractElementRule
 
     protected function inspect(Node $element, string $file): array
     {
-        $dir = $element->attribute('dir');
+        $dir = Attributes::value($element, 'dir');
         if ($dir === null || Attributes::isDynamic($dir) || in_array(strtolower($dir), ['ltr', 'rtl', 'auto'], true)) {
             return [];
         }

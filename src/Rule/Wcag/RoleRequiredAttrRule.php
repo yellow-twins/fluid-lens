@@ -7,6 +7,7 @@ namespace YellowTwins\FluidLens\Rule\Wcag;
 use YellowTwins\FluidLens\Parser\Node;
 use YellowTwins\FluidLens\Rule\AbstractElementRule;
 use YellowTwins\FluidLens\Rule\Severity;
+use YellowTwins\FluidLens\Support\Attributes;
 use YellowTwins\FluidLens\Support\Roles;
 
 /**
@@ -39,7 +40,7 @@ final class RoleRequiredAttrRule extends AbstractElementRule
     {
         $findings = [];
         foreach (self::REQUIRED as $role => $attribute) {
-            if (Roles::has($element, $role) && $element->attribute($attribute) === null) {
+            if (Roles::has($element, $role) && Attributes::value($element, $attribute) === null) {
                 $findings[] = $this->finding(
                     $element,
                     Severity::Warning,

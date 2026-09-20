@@ -24,7 +24,7 @@ final class PositiveTabindexRule extends AbstractElementRule
 
     protected function inspect(Node $element, string $file): array
     {
-        $tabindex = $element->attribute('tabindex');
+        $tabindex = Attributes::value($element, 'tabindex');
         if ($tabindex === null || Attributes::isDynamic($tabindex) || !$this->isPositive($tabindex)) {
             return [];
         }

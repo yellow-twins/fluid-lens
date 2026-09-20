@@ -41,7 +41,7 @@ final class AriaRoleRule extends AbstractElementRule
 
     protected function inspect(Node $element, string $file): array
     {
-        $role = $element->attribute('role');
+        $role = Attributes::value($element, 'role');
         if ($role === null || Attributes::isDynamic($role)) {
             return [];
         }

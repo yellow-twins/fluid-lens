@@ -8,6 +8,7 @@ use YellowTwins\FluidLens\Parser\Node;
 use YellowTwins\FluidLens\Rule\AbstractElementRule;
 use YellowTwins\FluidLens\Rule\Severity;
 use YellowTwins\FluidLens\Support\Attributes;
+use YellowTwins\FluidLens\Support\TagAttributes;
 
 /**
  * A boolean-state ARIA attribute must be "true" or "false" (or "mixed" for
@@ -38,7 +39,7 @@ final class AriaBooleanRule extends AbstractElementRule
     protected function inspect(Node $element, string $file): array
     {
         $findings = [];
-        foreach ($element->attributes as $name => $value) {
+        foreach (TagAttributes::resolve($element) as $name => $value) {
             $allowed = $this->allowedValues($name);
             if ($allowed === [] || Attributes::isDynamic($value) || in_array(strtolower($value), $allowed, true)) {
                 continue;

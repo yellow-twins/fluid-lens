@@ -64,6 +64,7 @@ final class RulesTest extends TestCase
         self::assertSame([], $this->runRule(new LinkNameRule(), '<a href="/x">Read more</a>'));
         self::assertSame([], $this->runRule(new LinkNameRule(), $ariaLabelled));
         self::assertSame([], $this->runRule(new LinkNameRule(), '<a href="/x">{product.title}</a>'));
+        self::assertSame([], $this->runRule(new LinkNameRule(), '<a href="/x"><f:render section="body"/></a>'));
     }
 
     public function testIconOnlyButtonIsAnError(): void

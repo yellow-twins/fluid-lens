@@ -42,6 +42,14 @@ final class TemplateParserTest extends TestCase
         self::assertSame('bg', $image->attribute('alt'));
     }
 
+    public function testKeepsAnArrayArgumentAsOneRawAttributeValue(): void
+    {
+        // Fluid array literals are opaque to the parser; Support\FluidArray reads them.
+        $tree = $this->parser->parse("<f:link.action aria=\"{label: 'Read {title}'}\">x</f:link.action>");
+
+        self::assertSame("{label: 'Read {title}'}", $tree->elementChildren()[0]->attribute('aria'));
+    }
+
     public function testPreservesDottedViewHelperNames(): void
     {
         // f:link.typolink and f:format.html must stay distinct: the HTML5

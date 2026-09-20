@@ -46,7 +46,7 @@ final class AutocompleteTokenRule extends AbstractElementRule
 
     protected function inspect(Node $element, string $file): array
     {
-        $value = $element->attribute('autocomplete');
+        $value = Attributes::value($element, 'autocomplete');
         if ($value === null || Attributes::isDynamic($value)) {
             return [];
         }

@@ -7,6 +7,7 @@ namespace YellowTwins\FluidLens\Rule\Wcag;
 use YellowTwins\FluidLens\Parser\Node;
 use YellowTwins\FluidLens\Rule\AbstractElementRule;
 use YellowTwins\FluidLens\Rule\Severity;
+use YellowTwins\FluidLens\Support\Attributes;
 use YellowTwins\FluidLens\Support\Focusable;
 
 /**
@@ -25,7 +26,7 @@ final class AriaHiddenFocusableRule extends AbstractElementRule
 
     protected function inspect(Node $element, string $file): array
     {
-        if ($element->attribute('aria-hidden') !== 'true' || !Focusable::isFocusable($element)) {
+        if (Attributes::value($element, 'aria-hidden') !== 'true' || !Focusable::isFocusable($element)) {
             return [];
         }
 

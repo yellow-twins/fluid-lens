@@ -7,6 +7,7 @@ namespace YellowTwins\FluidLens\Rule\Wcag;
 use YellowTwins\FluidLens\Parser\Node;
 use YellowTwins\FluidLens\Rule\AbstractElementRule;
 use YellowTwins\FluidLens\Rule\Severity;
+use YellowTwins\FluidLens\Support\Attributes;
 use YellowTwins\FluidLens\Support\Elements;
 
 /**
@@ -46,7 +47,7 @@ final class TableHeaderRule extends AbstractElementRule
 
     private function isPresentational(Node $element): bool
     {
-        return in_array($element->attribute('role'), ['presentation', 'none'], true);
+        return in_array(Attributes::value($element, 'role'), ['presentation', 'none'], true);
     }
 
     /**

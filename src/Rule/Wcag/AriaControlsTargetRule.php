@@ -34,7 +34,7 @@ final class AriaControlsTargetRule implements Rule
 
         $findings = [];
         foreach (Elements::all($template->tree) as $element) {
-            $value = $element->attribute('aria-controls');
+            $value = Attributes::value($element, 'aria-controls');
             if ($value === null || trim($value) === '' || Attributes::isDynamic($value)) {
                 continue;
             }

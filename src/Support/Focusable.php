@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace YellowTwins\FluidLens\Support;
 
 use YellowTwins\FluidLens\Parser\Node;
+use YellowTwins\FluidLens\Support\Attributes;
 
 /**
  * Decides whether an element can receive keyboard focus.
@@ -23,7 +24,7 @@ final class Focusable
 
     public static function isFocusable(Node $node): bool
     {
-        $tabindex = $node->attribute('tabindex');
+        $tabindex = Attributes::value($node, 'tabindex');
         if ($tabindex !== null && !Attributes::isDynamic($tabindex) && is_numeric($tabindex)) {
             return (int) $tabindex >= 0;
         }
@@ -38,7 +39,7 @@ final class Focusable
         }
 
         if ($node->name === 'input') {
-            return $node->attribute('type') !== 'hidden';
+            return Attributes::value($node, 'type') !== 'hidden';
         }
 
         return in_array($node->name, self::NATIVELY_FOCUSABLE, true);
