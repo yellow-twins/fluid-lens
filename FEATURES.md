@@ -54,6 +54,12 @@ risk, same stance as `label-for`).
   Found in a real project (giveaway form: honeypot + consent checkbox), where it
   was worked around with explicit `id`/`for`.
 
+- **Ignore `<f:comment>` content in the lint rules.** Markup mentioned in a
+  comment (e.g. "escaped title or <img>") is parsed as a real element and
+  reported (`wcag.img-alt` error on a comment line). Comments are not output, so
+  every rule should skip the subtree of `f:comment` (and `<!--…-->` is already
+  ignored). Found in a real project, worked around by rewording the comment.
+
 Resolved: the `aria` / `data` / `additionalAttributes` array arguments of
 TYPO3's tag-based ViewHelpers are expanded before the rules run, so an element
 labelled through them is no longer reported as unlabelled. Open follow-up: the
