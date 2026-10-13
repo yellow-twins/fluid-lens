@@ -45,6 +45,15 @@ orphaned `aria-controls` / `aria-labelledby` / `aria-describedby` targets and
 unlabelled navigation landmarks (all conservative notices — cross-partial FP
 risk, same stance as `label-for`).
 
+- **`wcag.form-label`: recognise implicit labels.** A control nested inside a
+  `<label>` (`<label>Text <input …></label>`) is correctly labelled, but the rule
+  only looks for `id`/`aria-label`/`aria-labelledby`/`title` on the control and
+  reports a false positive. Fix: walk up `$node->parent()` and accept an
+  ancestor `<label>` with non-empty text (reuse `Support/Text`); Fluid nodes
+  between control and label (`<f:if>`, `<f:for>`) must not break the chain.
+  Found in a real project (giveaway form: honeypot + consent checkbox), where it
+  was worked around with explicit `id`/`for`.
+
 Resolved: the `aria` / `data` / `additionalAttributes` array arguments of
 TYPO3's tag-based ViewHelpers are expanded before the rules run, so an element
 labelled through them is no longer reported as unlabelled. Open follow-up: the
