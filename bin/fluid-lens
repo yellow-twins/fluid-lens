@@ -31,7 +31,12 @@ use YellowTwins\FluidLens\Command\SimilarCommand;
         exit(1);
     }
 
-    $application = new Application('fluid-lens', '0.1.0-dev');
+    $version = class_exists(\Composer\InstalledVersions::class)
+        && \Composer\InstalledVersions::isInstalled('yellow-twins/fluid-lens')
+        ? (string) \Composer\InstalledVersions::getPrettyVersion('yellow-twins/fluid-lens')
+        : 'dev';
+
+    $application = new Application('fluid-lens', $version);
     $application->add(new ParseCommand());
     $application->add(new AnalyzeCommand());
     $application->add(new SimilarCommand());

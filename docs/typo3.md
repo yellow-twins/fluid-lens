@@ -84,7 +84,14 @@ If you prefer to run the analysers through the TYPO3 binary, fluid-lens ships a
 ```bash
 vendor/bin/typo3 fluidlens:analyze packages/my_ext/Resources/Private/Templates
 vendor/bin/typo3 fluidlens:similar packages/my_ext/Resources/Private/Templates
+vendor/bin/typo3 fluidlens:lint packages/
+vendor/bin/typo3 fluidlens:consistency packages/
+vendor/bin/typo3 fluidlens:components packages/
 ```
+
+`fluidlens:components` is the one most specific to TYPO3 14: it suggests which
+Partials and repeated markup should become Fluid 5 components — see
+[components.md](components.md).
 
 These become available when the package is loaded as a TYPO3 extension (the
 commands build their own dependencies, so no `Services.yaml` is required). For a

@@ -5,7 +5,7 @@
 [![PHP Version](https://img.shields.io/packagist/php-v/yellow-twins/fluid-lens)](https://packagist.org/packages/yellow-twins/fluid-lens)
 [![License](https://img.shields.io/packagist/l/yellow-twins/fluid-lens)](LICENSE)
 
-> Static analysis for Fluid templates — find markup that should be a Partial, and catch accessibility & best-practice problems, straight from the command line.
+> Static analysis for Fluid templates — find markup that should be a Partial or a Fluid component, and catch accessibility & best-practice problems, straight from the command line.
 
 `fluid-lens` reads your Fluid templates and *x-rays* them: it looks for duplicated
 markup structures that should be extracted into reusable Partials, and (from a later
@@ -18,9 +18,10 @@ optional TYPO3 command wrapper.
 ## Status
 
 **Usable today.** fluid-lens finds exact duplicated structures and near-duplicates
-across your templates, and lints them for accessibility (WCAG) and best-practice
-problems — with inline suppression and a baseline for adopting it on an existing
-project. See the roadmap for what's next.
+across your templates, suggests which of them — and which Partials — should become
+Fluid components (TYPO3 14 / Fluid 5), and lints them for accessibility (WCAG) and
+best-practice problems — with inline suppression and a baseline for adopting it on
+an existing project. See the roadmap for what's next.
 
 ## Why
 
@@ -79,6 +80,74 @@ vendor/bin/fluid-lens similar path/to/Templates/ --threshold=0.85 --json
 
 Similarity is measured with pq-gram distance, a fast approximation of tree edit
 distance. Structures are clustered by transitive similarity above the threshold.
+
+### Suggest Fluid components (TYPO3 14 / Fluid 5)
+
+Fluid 5 brings real components — `<my:teaserHeader title="…" />` with typed
+`<f:argument>`s and an `<f:slot />`. `components` tells you which parts of your
+templates should become one, and drafts it:
+
+```bash
+vendor/bin/fluid-lens components packages/
+vendor/bin/fluid-lens components packages/ --only=partials --no-draft
+vendor/bin/fluid-lens components packages/ --json
+```
+
+It combines three signals:
+
+- **Partials rendered from several files.** Their arguments come from what they
+  read: declared `f:argument`s are kept, every other variable becomes an argument,
+  and the `{settings.*}` a Partial sees implicitly become explicit arguments.
+- **Markup copied into several files.** The copies are lined up node by node;
+  differing values, class names and texts become arguments.
+- **Similar markup.** An element only some copies have becomes optional behind a
+  boolean argument; a region that differs too much becomes the `<f:slot />`. Copies
+  that are the whole content of several Partials become a suggestion to *merge*
+  those Partials.
+
+Each suggestion comes with its reasons, the caveats of converting it, the proposed
+arguments with inferred types, a ready-to-copy component file and the call that
+replaces every occurrence — nothing is written:
+
+```text
+ #1  TeasersHeader  <st:teasersHeader>   score 6.0 (medium)
+     similar markup · 2 call site(s) in 2 file(s) · 7 element(s)
+     Why
+       - the Partials Event/Teaser/Header (events), Product/Teaser/Header (mollie_cart)
+         hold the same frame — merge them into one component
+       - 1 element(s) only some copies have become optional
+     Caveats
+       - implicit-settings: reads {settings.listPageUid}; … a component only gets what is passed
+     Arguments
+        name         type    optional  default  from       seen
+        class        string  no        —        class      events-teasers-header | artists-teasers-header
+        variant      string  yes       ""       class       | main-yellow-light
+        key          string  no        —        attribute  events.next.dates | merch.detail.more
+        pageUid      mixed   no        —        attribute  {settings.listPageUid} | {settings.listPid.merch}
+        linkVariant  string  no        —        class      yellow | purple
+        showIcon     bool    yes       {true}   presence   present in 1 of 2
+     Draft  …/Components/TeasersHeader/TeasersHeader.fluid.html
+       <f:argument name="class" type="string" />
+       …
+       <div class="{class}">
+           <h2 class="pixellari {variant}"><f:translate key="{key}" extensionName="projectfiles" /></h2>
+           <f:link.action pageUid="{pageUid}" class="normal-link {linkVariant}" action="list">
+               …
+               <f:if condition="{showIcon}">
+                   <st:icon name="arrow" />
+               </f:if>
+           </f:link.action>
+       </div>
+     Call  (…/Partials/Event/Teaser/Header.html:2)
+       <st:teasersHeader class="events-teasers-header" key="events.next.dates" pageUid="{settings.listPageUid}" linkVariant="yellow" />
+```
+
+What has to stay a Partial is listed separately with the reason — most notably
+`f:form.*` fields outside their `<f:form>`, because a component renders with its own
+ViewHelper context and the fields would lose the form. Copies that only share their
+shape, or would need more arguments than `--max-arguments`, are not suggested.
+See [docs/components.md](docs/components.md) for the signals, the scoring, every
+option and the limits.
 
 ### Check project-wide consistency
 
@@ -247,6 +316,14 @@ vendor/bin/fluid-lens lint path/to/Templates/ --generate-baseline
 vendor/bin/fluid-lens lint path/to/Templates/ --baseline=fluid-lens-lint-baseline.json
 ```
 
+`components` has one as well — accept today's suggestions and only hear about new
+ones (or ones that gained call sites):
+
+```bash
+vendor/bin/fluid-lens components packages/ --generate-baseline
+vendor/bin/fluid-lens components packages/ --baseline=fluid-lens-components-baseline.json
+```
+
 `consistency` has one too — accept today's mix and only fail on new drift. It
 records the set of variants each check currently sees, then fails when a variant
 appears that the baseline does not list (a third library joining an already-mixed
@@ -286,8 +363,8 @@ composer lint:fluid
 composer exec fluid-lens -- analyze packages/   # ad-hoc, without a script
 ```
 
-This repository itself ships `composer analyze`, `composer similar` and
-`composer lint` shortcuts (see `composer.json`), e.g. `composer analyze -- path/`.
+This repository itself ships `composer analyze`, `composer similar`,
+`composer lint` and `composer components` shortcuts (see `composer.json`), e.g. `composer analyze -- path/`.
 
 ## Configuration
 
@@ -304,6 +381,7 @@ return [
     'lint'    => ['exclude' => ['style.inline']],     // or 'only' => [...], 'failOn' => 'error'
     'analyze' => ['minElements' => 3, 'minOccurrences' => 2],
     'similar' => ['threshold' => 0.85, 'minElements' => 4],
+    'components' => ['minFiles' => 2, 'maxArguments' => 6, 'only' => ['partials', 'clones', 'similar']],
 ];
 ```
 
@@ -323,6 +401,7 @@ given, fall back to the configured `paths`.
 | `similar` | Find near-duplicate structures            | `--threshold`, `--min-elements`, `--json` |
 | `lint`    | Check accessibility (WCAG) & best practices | `--only`, `--exclude`, `--fail-on`, `--baseline`, `--generate-baseline`, `--list-rules`, `--json`, `--sarif` |
 | `consistency` | Flag mixed slider/icon/other implementations | `--only`, `--exclude`, `--list-checks`, `--baseline`, `--generate-baseline`, `--json` |
+| `components` | Suggest Fluid components, with drafts | `--only`, `--min-occurrences`, `--min-files`, `--min-elements`, `--max-arguments`, `--threshold`, `--min-shared`, `--limit`, `--no-draft`, `--baseline`, `--generate-baseline`, `--json` |
 | `parse`   | Dump one template's structural node tree  | `--json` |
 
 ### Exit codes
@@ -379,10 +458,16 @@ duplicate ids, unlabelled controls, heading jumps, tables without headers, …) 
 best-practice sniffs, with criteria that need a rendered page reported as
 *needs runtime check* rather than silently passed.
 
+**Fluid components** ✅
+The `components` command suggests Fluid 5 components from frequently rendered
+Partials, copied and similar markup — with proposed arguments, an optional-element
+and slot analysis, a draft and the replacing call for every occurrence.
+
 **Next — more sniffs**: accordions/tiles/navigation component patterns, `<picture>`
 best practice, expanded ARIA validation.
 
-**Later — Auto-fix**: generate the suggested Partial and the `<f:render>` replacement.
+**Later — Auto-fix**: write the suggested Partial or component file and replace the
+occurrences with the `<f:render>` or component call.
 
 ## Continuous integration
 

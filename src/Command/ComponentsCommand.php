@@ -11,9 +11,11 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use YellowTwins\FluidLens\Baseline\ComponentBaseline;
 use YellowTwins\FluidLens\Component\AdvisorSettings;
 use YellowTwins\FluidLens\Component\ComponentAdvisor;
 use YellowTwins\FluidLens\Component\Model\CandidateSource;
+use YellowTwins\FluidLens\Component\Model\ComponentReport;
 use YellowTwins\FluidLens\Config\Config;
 use YellowTwins\FluidLens\Config\OptionResolver;
 use YellowTwins\FluidLens\Report\ConsoleComponentReporter;
@@ -34,6 +36,8 @@ use YellowTwins\FluidLens\Template\TemplateCollector;
 final class ComponentsCommand extends Command
 {
     use ResolvesConfig;
+
+    private const DEFAULT_BASELINE = 'fluid-lens-components-baseline.json';
 
     private const SOURCES = [
         'partials' => CandidateSource::Partial,
@@ -63,7 +67,15 @@ final class ComponentsCommand extends Command
             ->addOption('threshold', null, InputOption::VALUE_REQUIRED, 'Similarity for similar markup (0.8).')
             ->addOption('min-shared', null, InputOption::VALUE_REQUIRED, 'Content copies must share (0.45).')
             ->addOption('limit', null, InputOption::VALUE_REQUIRED, 'Show at most this many candidates.', '20')
-            ->addOption('no-draft', null, InputOption::VALUE_NONE, 'Leave out the drafts in the report.');
+            ->addOption('no-draft', null, InputOption::VALUE_NONE, 'Leave out the drafts in the report.')
+            ->addOption('baseline', null, InputOption::VALUE_REQUIRED, 'Suppress suggestions listed in this baseline.')
+            ->addOption(
+                'generate-baseline',
+                null,
+                InputOption::VALUE_OPTIONAL,
+                'Write the current suggestions to a baseline file and exit.',
+                false,
+            );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -97,6 +109,12 @@ final class ComponentsCommand extends Command
 
         $report = (new ComponentAdvisor($this->settings($input, $config, $sources)))->advise($collection->templates);
 
+        if ($input->getOption('generate-baseline') !== false) {
+            return $this->writeBaseline($io, $input, $report);
+        }
+
+        $report = $this->applyBaseline($io, $input, $config, $report);
+
         if ($input->getOption('json') === true) {
             $output->writeln((new JsonComponentReporter())->render($report));
         } else {
@@ -105,6 +123,44 @@ final class ComponentsCommand extends Command
         }
 
         return $report->candidates === [] ? Command::SUCCESS : Command::FAILURE;
+    }
+
+    private function writeBaseline(SymfonyStyle $io, InputInterface $input, ComponentReport $report): int
+    {
+        $value = $input->getOption('generate-baseline');
+        $path = is_string($value) && $value !== '' ? $value : self::DEFAULT_BASELINE;
+
+        if (file_put_contents($path, ComponentBaseline::fromCandidates($report->candidates)->toJson()) === false) {
+            $io->error(sprintf('Could not write baseline to: %s', $path));
+
+            return Command::FAILURE;
+        }
+
+        $io->success(sprintf('Wrote baseline with %d suggestion(s) to %s.', count($report->candidates), $path));
+
+        return Command::SUCCESS;
+    }
+
+    private function applyBaseline(
+        SymfonyStyle $io,
+        InputInterface $input,
+        Config $config,
+        ComponentReport $report,
+    ): ComponentReport {
+        $path = $this->options->string($input, 'baseline', $config->components->baseline);
+        if ($path === null) {
+            return $report;
+        }
+
+        if (!is_file($path)) {
+            $io->warning(sprintf('Baseline file not found, reporting everything: %s', $path));
+
+            return $report;
+        }
+
+        $baseline = ComponentBaseline::fromJson((string) file_get_contents($path));
+
+        return $report->withCandidates($baseline->filter($report->candidates));
     }
 
     /**

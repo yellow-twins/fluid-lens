@@ -109,4 +109,19 @@ little effort.
   replacement for clones; add missing `alt=""`/`type="button"`. Large; a v2 theme.
 - `--exclude-path` also honoured by a per-command CLI (done) and a global config
   (done); consider `.gitignore`-style ignore files.
-- SARIF for `analyze`/`similar` as well as `lint`.
+- SARIF for `analyze`/`similar`/`components` as well as `lint`.
+
+## Components (`components`, since 0.9.0)
+
+- `components --fix`: write the drafted component file and replace the
+  occurrences with the call (needs byte offsets in the parser; v2 theme like the
+  Partial auto-fix).
+- Duplication as runs of sibling nodes (address lines separated by `<br>`), which
+  the element-based detectors cannot see.
+- Named slots, once Fluid supports more than the default slot.
+- Resolve Partial names through TypoScript `partialRootPaths` when a TYPO3
+  instance is available (the native `fluidlens:components` command could ask it).
+- Wrap long attribute lists in drafts onto several lines (whitespace-safe inside
+  the opening tag).
+- Similar markup: let the slot also absorb several diverging regions when their
+  common ancestor is the root, as an opt-in (today such copies are skipped).
