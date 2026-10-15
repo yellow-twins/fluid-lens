@@ -5,15 +5,18 @@ declare(strict_types=1);
 namespace YellowTwins\FluidLens\Component;
 
 use YellowTwins\FluidLens\Component\Index\ComponentIndex;
+use YellowTwins\FluidLens\Component\Index\PartialFile;
 use YellowTwins\FluidLens\Component\Index\PartialIndex;
 use YellowTwins\FluidLens\Component\Index\ResolutionStatus;
 use YellowTwins\FluidLens\Component\Model\CandidateSource;
-use YellowTwins\FluidLens\Component\Model\ComponentCandidate;
 use YellowTwins\FluidLens\Component\Model\ComponentReport;
 use YellowTwins\FluidLens\Component\Model\KeptPartial;
 use YellowTwins\FluidLens\Component\Model\UnresolvedPartial;
+use YellowTwins\FluidLens\Detector\CloneDetector;
+use YellowTwins\FluidLens\Detector\CloneOccurrence;
 use YellowTwins\FluidLens\Fluid\RenderCall;
 use YellowTwins\FluidLens\Fluid\RenderCallFinder;
+use YellowTwins\FluidLens\Parser\Node;
 use YellowTwins\FluidLens\Template\ParsedTemplate;
 
 /**
@@ -26,13 +29,17 @@ use YellowTwins\FluidLens\Template\ParsedTemplate;
 final class ComponentAdvisor
 {
     private readonly PartialCandidateFactory $partials;
+    private readonly CloneCandidateFactory $clones;
 
     public function __construct(
         private readonly AdvisorSettings $settings = new AdvisorSettings(),
         private readonly RenderCallFinder $renderCalls = new RenderCallFinder(),
         ?PartialCandidateFactory $partials = null,
+        ?CloneCandidateFactory $clones = null,
     ) {
-        $this->partials = $partials ?? new PartialCandidateFactory(new CandidateScorer($settings->maxArguments));
+        $scorer = new CandidateScorer($settings->maxArguments);
+        $this->partials = $partials ?? new PartialCandidateFactory($scorer);
+        $this->clones = $clones ?? new CloneCandidateFactory($scorer);
     }
 
     /**
@@ -42,49 +49,122 @@ final class ComponentAdvisor
     {
         $components = ComponentIndex::build($templates, $this->settings->prefixes);
         $context = new DraftContext($components);
+        $deduplicator = new CandidateDeduplicator();
 
-        $candidates = [];
         $kept = [];
         $unreferenced = [];
         $unresolved = [];
         $skipped = 0;
 
         if ($this->settings->uses(CandidateSource::Partial)) {
-            $partials = PartialIndex::build($templates);
-            [$callsByFile, $unresolved] = $this->resolveCalls($templates, $partials);
-
-            foreach ($partials->partials() as $partial) {
-                $calls = $callsByFile[$partial->file()] ?? [];
-                if ($calls === []) {
-                    $unreferenced[] = $partial;
-                    continue;
-                }
-
-                if (!$this->meetsThresholds($calls)) {
-                    $skipped++;
-                    continue;
-                }
-
-                $result = $this->partials->create($partial, $calls, $context);
-                if ($result === null) {
-                    $skipped++;
-                } elseif ($result instanceof KeptPartial) {
-                    $kept[] = $result;
-                } else {
-                    $candidates[] = $result;
-                }
-            }
+            [$kept, $unreferenced, $unresolved, $skippedPartials] = $this->advisePartials(
+                $templates,
+                $context,
+                $deduplicator,
+            );
+            $skipped += $skippedPartials;
         }
+
+        if ($this->settings->uses(CandidateSource::Clone)) {
+            $skipped += $this->adviseClones($templates, $context, $deduplicator);
+        }
+
+        [$candidates, $duplicates] = $deduplicator->result();
 
         return new ComponentReport(
             count($templates),
-            $this->rank($candidates),
+            $candidates,
             $this->sortKept($kept),
             $components->components(),
             $unreferenced,
             $unresolved,
-            $skipped,
+            $skipped + $duplicates,
         );
+    }
+
+    /**
+     * @param list<ParsedTemplate> $templates
+     *
+     * @return array{0: list<KeptPartial>, 1: list<PartialFile>, 2: list<UnresolvedPartial>, 3: int}
+     */
+    private function advisePartials(array $templates, DraftContext $context, CandidateDeduplicator $deduplicator): array
+    {
+        $partials = PartialIndex::build($templates);
+        [$callsByFile, $unresolved] = $this->resolveCalls($templates, $partials);
+
+        $kept = [];
+        $unreferenced = [];
+        $skipped = 0;
+        foreach ($partials->partials() as $partial) {
+            $calls = $callsByFile[$partial->file()] ?? [];
+            if ($calls === []) {
+                $unreferenced[] = $partial;
+                continue;
+            }
+
+            $files = array_unique(array_map(static fn (RenderCall $call): string => $call->file, $calls));
+            if (!$this->meetsThresholds(count($calls), count($files))) {
+                $skipped++;
+                continue;
+            }
+
+            $result = $this->partials->create($partial, $calls, $context);
+            if ($result === null) {
+                $skipped++;
+            } elseif ($result instanceof KeptPartial) {
+                $kept[] = $result;
+            } else {
+                $deduplicator->add($result, [$partial->template->tree]);
+            }
+        }
+
+        return [$kept, $unreferenced, $unresolved, $skipped];
+    }
+
+    /**
+     * @param list<ParsedTemplate> $templates
+     *
+     * @return int the number of repeated structures below the thresholds or unsuitable
+     */
+    private function adviseClones(array $templates, DraftContext $context, CandidateDeduplicator $deduplicator): int
+    {
+        $byFile = [];
+        $scanned = [];
+        foreach ($templates as $template) {
+            $byFile[$template->file] = $template;
+            if (!ComponentIndex::isDefinition($template->file)) {
+                $scanned[] = $template;
+            }
+        }
+
+        $detector = new CloneDetector($this->settings->minElements, $this->settings->minOccurrences);
+        $skipped = 0;
+        foreach ($detector->detect($scanned) as $group) {
+            $files = array_unique(array_map(static fn (CloneOccurrence $o): string => $o->file, $group->occurrences));
+            if (!$this->meetsThresholds($group->occurrenceCount(), count($files))) {
+                $skipped++;
+                continue;
+            }
+
+            $candidate = $this->clones->create(
+                'clone:' . $group->hash,
+                $group->elementCount,
+                $group->occurrences,
+                $byFile,
+                $context,
+            );
+            if ($candidate === null) {
+                $skipped++;
+                continue;
+            }
+
+            $deduplicator->add(
+                $candidate,
+                array_map(static fn (CloneOccurrence $occurrence): Node => $occurrence->node, $group->occurrences),
+            );
+        }
+
+        return $skipped;
     }
 
     /**
@@ -127,30 +207,9 @@ final class ComponentAdvisor
         return [$byFile, $list];
     }
 
-    /**
-     * @param non-empty-list<RenderCall> $calls
-     */
-    private function meetsThresholds(array $calls): bool
+    private function meetsThresholds(int $callSites, int $files): bool
     {
-        $files = array_unique(array_map(static fn (RenderCall $call): string => $call->file, $calls));
-
-        return count($calls) >= $this->settings->minOccurrences && count($files) >= $this->settings->minFiles;
-    }
-
-    /**
-     * @param list<ComponentCandidate> $candidates
-     *
-     * @return list<ComponentCandidate>
-     */
-    private function rank(array $candidates): array
-    {
-        usort(
-            $candidates,
-            static fn (ComponentCandidate $a, ComponentCandidate $b): int
-                => [$b->score->value, $a->name] <=> [$a->score->value, $b->name],
-        );
-
-        return $candidates;
+        return $callSites >= $this->settings->minOccurrences && $files >= $this->settings->minFiles;
     }
 
     /**

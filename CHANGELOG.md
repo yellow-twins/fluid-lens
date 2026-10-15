@@ -20,6 +20,15 @@ All notable changes to this project are documented here. The format is based on
   the existing components, Partials no scanned template renders and render
   calls that resolve to no scanned file. Text and JSON output; nothing is
   written. `fluidlens:components` in TYPO3.
+  Markup copied into several files is suggested too: the copies are lined up
+  node by node, differing attribute values, class names and texts become
+  arguments (properties of differently named variables collapse into one
+  object argument, loop variables are treated as renames), and variables and
+  settings every copy reads become arguments as well. Copies that only share
+  their shape (less than half of their values identical), consist of Fluid
+  control flow only or would need too many arguments are not suggested.
+  Overlapping suggestions are reduced to the best one. `--only` selects the
+  signals (`partials`, `clones`, `similar`).
 - `ParsedTemplate` keeps the raw template source, and `FluidArray` accepts
   numeric keys and offers `parseRaw()` to tell quoted strings from variables.
 

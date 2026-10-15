@@ -126,6 +126,38 @@ final class ComponentAdvisorTest extends TestCase
         self::assertSame(2, $report->existingComponents[0]->usages);
     }
 
+    public function testSuggestsMarkupCopiedIntoSeveralFiles(): void
+    {
+        $card = '<div class="teaser"><h3 class="teaser__title">{%s.title}</h3>'
+            . '<p class="teaser__text">Read more</p><a href="{%s.url}" class="teaser__link">Open</a></div>';
+        $report = (new ComponentAdvisor(new AdvisorSettings(sources: [CandidateSource::Clone])))
+            ->advise(TemplateFactory::many([
+                'a/Templates/News.html' => '<main>' . sprintf($card, 'news', 'news') . '</main>',
+                'a/Templates/Events.html' => '<main>' . sprintf($card, 'event', 'event') . '</main>',
+                'a/Templates/Loop.html' => '<ul><li><b>x</b><i>y</i></li><li><b>x</b><i>y</i></li></ul>',
+            ]));
+
+        self::assertCount(1, $report->candidates);
+        $teaser = $report->candidates[0];
+        self::assertSame('Teaser', $teaser->name);
+        self::assertSame([CandidateSource::Clone], $teaser->sources);
+        self::assertSame(['item'], array_map(static fn ($argument): string => $argument->name, $teaser->arguments));
+        self::assertSame('<st:teaser item="{news}" />', str_replace('my:', 'st:', $teaser->occurrences[0]->call));
+        // The two list items repeat inside one file only: a loop, not a component.
+        self::assertSame(1, $report->skippedLowPayoff);
+    }
+
+    public function testCopiesThatOnlyShareTheirShapeAreNotSuggested(): void
+    {
+        $report = (new ComponentAdvisor(new AdvisorSettings(sources: [CandidateSource::Clone])))
+            ->advise(TemplateFactory::many([
+                'a/Templates/A.html' => '<div class="x"><p class="a">One</p><p class="b">Two</p></div>',
+                'a/Templates/B.html' => '<div class="y"><p class="c">Three</p><p class="d">Four</p></div>',
+            ]));
+
+        self::assertSame([], $report->candidates);
+    }
+
     public function testRaisingTheThresholdDropsTheCandidate(): void
     {
         $report = (new ComponentAdvisor(new AdvisorSettings(minOccurrences: 4, sources: [CandidateSource::Partial])))

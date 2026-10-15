@@ -22,6 +22,7 @@ use YellowTwins\FluidLens\Component\Model\PartialUsage;
 use YellowTwins\FluidLens\Component\Proposal\ArgumentNamer;
 use YellowTwins\FluidLens\Component\Proposal\ArgumentTypeInferrer;
 use YellowTwins\FluidLens\Component\Proposal\ComponentNamer;
+use YellowTwins\FluidLens\Component\Proposal\SettingsArguments;
 use YellowTwins\FluidLens\Fluid\NamespaceDeclarations;
 use YellowTwins\FluidLens\Fluid\RenderCall;
 use YellowTwins\FluidLens\Fluid\SourceCasing;
@@ -61,6 +62,7 @@ final class PartialCandidateFactory
         private readonly FluidMarkupWriter $writer = new FluidMarkupWriter(),
         private readonly DraftRenderer $drafts = new DraftRenderer(),
         private readonly ExampleCallRenderer $calls = new ExampleCallRenderer(),
+        private readonly SettingsArguments $settings = new SettingsArguments(),
     ) {
     }
 
@@ -253,7 +255,7 @@ final class PartialCandidateFactory
             }
 
             if ($root === 'settings') {
-                foreach ($this->settingsArguments($usage, $namer, $substitutions) as $name => $argument) {
+                foreach ($this->settings->propose($usage, $namer, $substitutions) as $name => $argument) {
                     $inputs[$name] = $argument->observedValues[0] ?? '{settings}';
                     $arguments[] = $argument;
                 }
@@ -287,45 +289,6 @@ final class PartialCandidateFactory
             ...array_values(array_filter($arguments, static fn (ArgumentProposal $a): bool => !$a->optional)),
             ...array_values(array_filter($arguments, static fn (ArgumentProposal $a): bool => $a->optional)),
         ];
-    }
-
-    /**
-     * The settings a Partial reads, as explicit arguments. When it uses the whole
-     * {settings} array, that array is passed on as one argument; otherwise every
-     * setting it reads becomes an argument of its own.
-     *
-     * @return array<string, ArgumentProposal>
-     */
-    private function settingsArguments(VariableUsage $usage, ArgumentNamer $namer, Substitutions $substitutions): array
-    {
-        if (in_array('settings', $usage->paths, true)) {
-            $name = $namer->claim('settings');
-
-            return [$name => new ArgumentProposal(
-                $name,
-                ArgumentType::Array,
-                false,
-                null,
-                ArgumentOrigin::Setting,
-                ['{settings}'],
-            )];
-        }
-
-        $arguments = [];
-        foreach ($usage->paths as $path) {
-            $name = $namer->forPath($path);
-            $substitutions->renameVariable($path, $name);
-            $arguments[$name] = new ArgumentProposal(
-                $name,
-                ArgumentType::Mixed,
-                false,
-                null,
-                ArgumentOrigin::Setting,
-                ['{' . $path . '}'],
-            );
-        }
-
-        return $arguments;
     }
 
     /**

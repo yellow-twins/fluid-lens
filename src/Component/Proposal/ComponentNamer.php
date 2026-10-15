@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace YellowTwins\FluidLens\Component\Proposal;
 
 use YellowTwins\FluidLens\Parser\Node;
+use YellowTwins\FluidLens\Support\Elements;
 
 /**
  * Proposes a component name.
@@ -88,14 +89,25 @@ final class ComponentNamer
      */
     public function fromMarkup(array $roots): string
     {
-        $fromClasses = $this->fromClasses($roots);
+        if ($roots === []) {
+            return 'Block';
+        }
+
+        $fromClasses = $this->fromClasses($roots) ?? $this->fromClasses([$roots[0]]);
         if ($fromClasses !== null) {
             return $fromClasses;
         }
 
-        $tag = $roots[0]->name ?? '';
+        // The first named block inside, e.g. "artist-single" inside a plain row —
+        // a list of them when a loop lies in between.
+        foreach (Elements::all($roots[0]) as $descendant) {
+            $fromDescendant = $descendant === $roots[0] ? null : $this->fromClasses([$descendant]);
+            if ($fromDescendant !== null) {
+                return $fromDescendant . ($this->isLooped($descendant, $roots[0]) ? 'List' : '');
+            }
+        }
 
-        return self::ROLE_NAMES[$tag] ?? 'Block';
+        return self::ROLE_NAMES[$roots[0]->name] ?? 'Block';
     }
 
     /**
@@ -206,5 +218,16 @@ final class ComponentNamer
         }
 
         return implode('-', array_reverse($common));
+    }
+
+    private function isLooped(Node $node, Node $boundary): bool
+    {
+        for ($parent = $node->parent(); $parent !== null && $parent !== $boundary; $parent = $parent->parent()) {
+            if ($parent->name === 'f:for' || $parent->name === 'f:groupedfor') {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

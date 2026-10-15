@@ -33,17 +33,6 @@ final class VariableReferences
         'integer', 'int', 'float', 'boolean', 'bool', 'string', 'array', 'object',
     ];
 
-    /**
-     * Attributes that bind a new local variable, per (lowercased) ViewHelper.
-     */
-    private const BINDINGS = [
-        'f:for' => ['as', 'key', 'iteration'],
-        'f:groupedfor' => ['as', 'groupkey'],
-        'f:variable' => ['name'],
-        'f:cycle' => ['as'],
-        'f:form.validationresults' => ['as'],
-    ];
-
     private const QUOTED = '/\'(?:\\\\.|[^\'\\\\])*\'|"(?:\\\\.|[^"\\\\])*"/';
 
     private const VIEWHELPER_NAME = '/[A-Za-z][\w]*:[\w.]+(?=\s*\()/';
@@ -115,7 +104,7 @@ final class VariableReferences
      */
     private function collectBindings(Node $node, array &$bound): void
     {
-        foreach (self::BINDINGS[$node->name] ?? [] as $attribute) {
+        foreach (Bindings::attributesOf($node->name) as $attribute) {
             $name = $node->attribute($attribute);
             if ($name !== null && preg_match('/^[A-Za-z_]\w*$/', $name) === 1) {
                 $bound[$name] = true;
@@ -161,7 +150,8 @@ final class VariableReferences
      */
     private function scanExpression(string $expression, string $hint, array &$found): void
     {
-        $code = (string) preg_replace(self::QUOTED, "''", $expression);
+        // Wrapped again so a leading array key ({aos: 'x'}) is recognised as a key.
+        $code = '{' . (string) preg_replace(self::QUOTED, "''", $expression) . '}';
 
         // Inline ViewHelper arguments carry their own role: {f:if(condition: x)}.
         if (preg_match_all(self::HINTED, $code, $hinted, PREG_SET_ORDER) !== false) {
