@@ -49,6 +49,12 @@ final class PartialCandidateFactory
 
     private const EXTENSION_OF = '#/([^/]+)/Resources/Private/#';
 
+    /**
+     * A Partial is reused already: as a component it gains isolation and a
+     * typed contract, but no duplication goes away. Copied markup ranks above it.
+     */
+    private const ALREADY_REUSED = 0.6;
+
     private const DECLARED_BONUS = 1.3;
     private const EXTENSIONS_BONUS = 1.2;
     private const SETTINGS_PENALTY = 0.8;
@@ -477,7 +483,7 @@ final class PartialCandidateFactory
      */
     private function adjustments(array $calls, array $declared, array $caveats): array
     {
-        $adjustments = [];
+        $adjustments = ['already a Partial' => self::ALREADY_REUSED];
         if ($declared !== []) {
             $adjustments['declares arguments'] = self::DECLARED_BONUS;
         }

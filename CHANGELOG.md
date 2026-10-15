@@ -42,6 +42,11 @@ All notable changes to this project are documented here. The format is based on
 - `ParsedTemplate` keeps the raw template source, and `FluidArray` accepts
   numeric keys and offers `parseRaw()` to tell quoted strings from variables.
 
+- The parser remembers where it dropped whitespace between nodes (without keeping
+  whitespace nodes, so the structural analysis is unchanged), and drafts put a
+  space exactly there — a draft renders like the markup it came from. Long tags
+  in drafts are wrapped attribute by attribute.
+
 ### Changed
 
 - The version shown by `fluid-lens --version` comes from Composer instead of a

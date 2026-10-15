@@ -19,6 +19,20 @@ final class Node
     private ?Node $parent = null;
 
     /**
+     * Where whitespace stood in the source between children. The parser drops
+     * whitespace-only text, which is right for structural analysis; writing
+     * markup back needs to know where it was, because between inline elements
+     * it renders as a space.
+     *
+     * @var array<int, true> child object id => whitespace preceded it
+     */
+    private array $whitespaceBefore = [];
+
+    private bool $pendingWhitespace = false;
+
+    private bool $trailingWhitespace = false;
+
+    /**
      * @param array<string, string> $attributes
      */
     public function __construct(
@@ -34,6 +48,40 @@ final class Node
     {
         $child->parent = $this;
         $this->children[] = $child;
+
+        if ($this->pendingWhitespace) {
+            $this->whitespaceBefore[spl_object_id($child)] = true;
+            $this->pendingWhitespace = false;
+        }
+    }
+
+    /**
+     * Records dropped whitespace before the next child, or at the end when no
+     * child follows.
+     */
+    public function addWhitespace(): void
+    {
+        $this->pendingWhitespace = true;
+        $this->trailingWhitespace = true;
+    }
+
+    /**
+     * Ends the children: whitespace recorded after the last one is trailing.
+     */
+    public function closeChildren(): void
+    {
+        $this->trailingWhitespace = $this->pendingWhitespace;
+        $this->pendingWhitespace = false;
+    }
+
+    public function hasWhitespaceBefore(Node $child): bool
+    {
+        return isset($this->whitespaceBefore[spl_object_id($child)]);
+    }
+
+    public function hasTrailingWhitespace(): bool
+    {
+        return $this->trailingWhitespace;
     }
 
     /**

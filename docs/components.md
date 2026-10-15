@@ -167,8 +167,9 @@ is reserved.
 and more segments are used when a name is taken), or from the shared part of the
 root's class names (`events-teasers-header` and `artists-teasers-header` give
 `TeasersHeader`), or from the first named block inside (`ArtistSingleList` for a
-loop over `.artist-single`), or from the root's role. The tag uses the prefix most
-existing component calls use.
+loop over `.artist-single`), or from the root's role. A name that is a single word (`Grid`,
+`Billing`) gets the folder it lives in (`ListGrid`, `AddressBilling`). The tag uses
+the prefix most existing component calls use.
 
 ## Ranking
 
@@ -179,9 +180,16 @@ score = call sites × log2(1 + elements) × spread × argument factor × adjustm
 - **spread**: `1 + 0.5` per additional file, at most `2` — copies in many files
   drift apart;
 - **argument factor**: `1 − 0.05` per argument, `0.5` above `maxArguments`;
-- **adjustments**: `× 1.3` when a Partial already declares its arguments, `× 1.2`
-  when callers span several extensions, `× 0.8` for implicit settings, and the
-  shared share of content for copied and similar markup.
+- **adjustments**:
+  - `× 0.6` for a Partial — it is reused already; as a component it gains
+    isolation and a typed contract, but no duplication goes away, so copied
+    markup ranks above it;
+  - `× 1.3` when a Partial already declares its arguments, `× 1.2` when callers
+    span several extensions, `× 0.8` for implicit settings;
+  - for copied and similar markup the square root of the shared content (the
+    threshold already rules out copies sharing little);
+  - for a merge `× 1.5` per merged Partial file beyond the first, and the call
+    sites are the Partials' render calls.
 
 The breakdown is part of the JSON output (`scoreFactors`). Priority is *high* from
 12, *medium* from 6, *low* below. Candidates below the thresholds are counted as
@@ -203,15 +211,15 @@ render call, and render calls that resolve to no scanned file.
 ```json
 {
   "filesScanned": 179,
-  "candidateCount": 38,
+  "candidateCount": 40,
   "candidates": [
     {
       "id": "merge:…/Event/Teaser/Header.html,…/Product/Teaser/Header.html",
       "name": "TeasersHeader",
       "tag": "st:teasersHeader",
-      "score": 6.0,
-      "priority": "medium",
-      "scoreFactors": { "call sites": 3.0, "size": 3.0, "spread": 2.0, "arguments": 0.7, "shared content": 0.48 },
+      "score": 13.2,
+      "priority": "high",
+      "scoreFactors": { "call sites": 3.0, "size": 3.0, "spread": 2.0, "arguments": 0.7, "shared content": 0.7, "merges Partials": 1.5 },
       "sources": ["similar"],
       "reasons": ["…"],
       "caveats": [{ "code": "implicit-settings", "message": "…" }],
@@ -227,7 +235,7 @@ render call, and render calls that resolve to no scanned file.
   "existingComponents": [{ "name": "icon", "file": "…", "usages": 28 }],
   "unreferencedPartials": [{ "name": "Product/Price", "file": "…" }],
   "unresolvedPartials": [{ "name": "Mail/Footer", "reason": "missing", "callers": ["…:12"] }],
-  "skippedLowPayoff": 166
+  "skippedLowPayoff": 164
 }
 ```
 
@@ -252,8 +260,9 @@ render call, and render calls that resolve to no scanned file.
    `{namespace my=MyVendor\MySite\Components}`.
 
 2. **Copy the draft** to the suggested path and review it: the argument names and
-   types, the caveats, and the markup — whitespace between inline elements is not
-   preserved by the parser, so compare the rendered output.
+   types, the caveats, and the markup. Drafts keep a space wherever the source had
+   whitespace between inline content, and wrap long tags attribute by attribute —
+   whitespace inside a tag never reaches the output.
 3. **Replace each occurrence** with its call. For a Partial, replace the render
    calls (or, for a merge, each Partial's content); for copied markup, the copied
    block.
@@ -312,6 +321,7 @@ of a TYPO3 instance, and it means:
   found only when it lives in a Partial.
 - **Small trees.** pq-gram similarity of small blocks drops quickly when one
   element is missing; lower `--threshold` to see more similar markup.
-- **Drafts are starting points.** Whitespace between inline elements and argument
-  defaults the source does not state are reviewed by a person, not decided by the
-  tool.
+- **Drafts are starting points.** Argument defaults the source does not state are
+  reviewed by a person, not decided by the tool. An empty optional class variant
+  leaves a trailing space in the class attribute (`class="title "`), which does
+  not change the styling.

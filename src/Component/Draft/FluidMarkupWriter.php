@@ -12,17 +12,25 @@ use YellowTwins\FluidLens\Parser\NodeType;
  * Writes a parsed subtree back as readable Fluid markup, applying
  * {@see Substitutions} on the way.
  *
- * Only block-level elements are broken onto lines of their own; inline content
- * (text and inline elements) is kept together on one line exactly as it was, so
- * the draft adds no whitespace where it would change the output. Whitespace-only
- * text is not preserved by the parser, so a draft is a starting point to review,
- * not a byte-exact copy.
+ * The output renders like the source:
+ *
+ * - only block-level elements get lines of their own; inline content (text and
+ *   inline elements) stays together on one line, with a space exactly where the
+ *   source had whitespace;
+ * - a tag too long for one line gets its attributes on lines of their own —
+ *   whitespace inside a tag never reaches the output.
  */
 final class FluidMarkupWriter
 {
     private const INDENT = '    ';
 
     private const MAX_LINE = 110;
+
+    /**
+     * In a line that is too long anyway, opening tags longer than this are
+     * wrapped attribute by attribute.
+     */
+    private const MAX_TAG = 80;
 
     private const VOID_ELEMENTS = [
         'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr',
@@ -40,9 +48,10 @@ final class FluidMarkupWriter
      */
     public function write(array $nodes, Substitutions $substitutions, SourceCasing $casing): string
     {
+        $writing = new MarkupWriting($substitutions, $casing);
         $lines = [];
         foreach ($nodes as $node) {
-            array_push($lines, ...$this->lines($node, 0, $substitutions, $casing));
+            array_push($lines, ...$this->lines($node, 0, $writing));
         }
 
         return implode("\n", $lines);
@@ -51,8 +60,9 @@ final class FluidMarkupWriter
     /**
      * @return list<string>
      */
-    private function lines(Node $node, int $depth, Substitutions $substitutions, SourceCasing $casing): array
+    private function lines(Node $node, int $depth, MarkupWriting $writing): array
     {
+        $substitutions = $writing->substitutions;
         if ($substitutions->isDropped($node) || $node->type === NodeType::Comment) {
             return [];
         }
@@ -65,9 +75,9 @@ final class FluidMarkupWriter
         }
 
         if ($node->type === NodeType::Text) {
-            $text = $this->text($node, $substitutions);
+            $text = trim($this->text($node, $writing));
 
-            return trim($text) === '' ? [] : [$indent . trim($text)];
+            return $text === '' ? [] : [$indent . $text];
         }
 
         if (!$node->isElement()) {
@@ -76,76 +86,102 @@ final class FluidMarkupWriter
 
         $condition = $substitutions->condition($node);
         if ($condition !== null) {
-            $inner = $this->elementLines($node, $depth + 1, $substitutions, $casing);
-
             return [
                 $indent . sprintf('<f:if condition="%s">', $this->escape($condition)),
-                ...$inner,
+                ...$this->elementLines($node, $depth + 1, $writing),
                 $indent . '</f:if>',
             ];
         }
 
-        return $this->elementLines($node, $depth, $substitutions, $casing);
+        return $this->elementLines($node, $depth, $writing);
     }
 
     /**
      * @return list<string>
      */
-    private function elementLines(Node $node, int $depth, Substitutions $substitutions, SourceCasing $casing): array
+    private function elementLines(Node $node, int $depth, MarkupWriting $writing): array
     {
         $indent = str_repeat(self::INDENT, $depth);
-        $compact = $this->compactElement($node, $substitutions, $casing);
-
-        $hasBlocks = $this->hasBlockDescendant($node, $substitutions);
+        $hasBlocks = $this->hasBlockDescendant($node, $writing);
         $isBlock = in_array($node->name, self::BLOCK_ELEMENTS, true);
-        if (!$hasBlocks && (!$isBlock || strlen($indent . $compact) <= self::MAX_LINE)) {
-            return [$indent . $compact];
+
+        if (!$hasBlocks) {
+            $compact = $this->compactElement($node, $depth, false, $writing);
+            if (strlen($indent . $compact) <= self::MAX_LINE) {
+                return [$indent . $compact];
+            }
+
+            if (!$isBlock) {
+                return [$indent . $this->compactElement($node, $depth, true, $writing)];
+            }
         }
 
-        $name = $casing->restoreTag($node->name);
-        $lines = [$indent . '<' . $name . $this->attributes($node, $substitutions, $casing) . '>'];
-        $inline = '';
+        $name = $writing->casing->restoreTag($node->name);
+        $opening = $this->openingTag($node, $depth, false, $writing);
+        if (strlen($indent . $opening . '>') > self::MAX_LINE) {
+            $opening = $this->openingTag($node, $depth, true, $writing);
+        }
+
+        $lines = [$indent . $opening . '>'];
+        $group = [];
         foreach ($node->children() as $child) {
-            if (!$this->isBlockNode($child, $substitutions)) {
-                $inline .= $this->compact($child, $substitutions, $casing);
+            if (!$this->isBlockNode($child, $writing)) {
+                $group[] = $child;
                 continue;
             }
 
-            $lines = [...$lines, ...$this->inlineLine($inline, $depth + 1)];
-            $inline = '';
-            array_push($lines, ...$this->lines($child, $depth + 1, $substitutions, $casing));
+            $lines = [...$lines, ...$this->inlineLines($node, $group, $depth + 1, $writing)];
+            $group = [];
+            array_push($lines, ...$this->lines($child, $depth + 1, $writing));
         }
-        $lines = [...$lines, ...$this->inlineLine($inline, $depth + 1)];
+        $lines = [...$lines, ...$this->inlineLines($node, $group, $depth + 1, $writing)];
         $lines[] = $indent . '</' . $name . '>';
 
         return $lines;
     }
 
     /**
+     * A run of inline children on one line, as the source had it; long tags are
+     * wrapped only when the line would be too long otherwise.
+     *
+     * @param list<Node> $group
+     *
      * @return list<string>
      */
-    private function inlineLine(string $inline, int $depth): array
+    private function inlineLines(Node $parent, array $group, int $depth, MarkupWriting $writing): array
     {
-        return trim($inline) === '' ? [] : [str_repeat(self::INDENT, $depth) . trim($inline)];
+        $indent = str_repeat(self::INDENT, $depth);
+        $line = trim($this->inlineRun($parent, $group, $depth, false, $writing));
+        if ($line === '') {
+            return [];
+        }
+
+        if (strlen($indent . $line) > self::MAX_LINE) {
+            $line = trim($this->inlineRun($parent, $group, $depth, true, $writing));
+        }
+
+        return [$indent . $line];
     }
 
     /**
-     * A child that gets a line of its own: a block element, an element holding
-     * one, or an element wrapped in a condition.
+     * @param list<Node> $group
      */
-    private function isBlockNode(Node $node, Substitutions $substitutions): bool
+    private function inlineRun(Node $parent, array $group, int $depth, bool $wrap, MarkupWriting $writing): string
     {
-        if (!$node->isElement() || $substitutions->isDropped($node) || $substitutions->replacement($node) !== null) {
-            return false;
+        $run = '';
+        foreach ($group as $child) {
+            $content = $this->compact($child, $depth, $wrap, $writing);
+            if ($content !== '') {
+                $run .= ($run !== '' && $parent->hasWhitespaceBefore($child) ? ' ' : '') . $content;
+            }
         }
 
-        return in_array($node->name, self::BLOCK_ELEMENTS, true)
-            || $substitutions->condition($node) !== null
-            || $this->hasBlockDescendant($node, $substitutions);
+        return $run;
     }
 
-    private function compact(Node $node, Substitutions $substitutions, SourceCasing $casing): string
+    private function compact(Node $node, int $depth, bool $wrap, MarkupWriting $writing): string
     {
+        $substitutions = $writing->substitutions;
         if ($substitutions->isDropped($node) || $node->type === NodeType::Comment) {
             return '';
         }
@@ -156,10 +192,10 @@ final class FluidMarkupWriter
         }
 
         if ($node->type === NodeType::Text) {
-            return (string) preg_replace('/\s+/', ' ', $this->text($node, $substitutions));
+            return (string) preg_replace('/\s+/', ' ', $this->text($node, $writing));
         }
 
-        $markup = $this->compactElement($node, $substitutions, $casing);
+        $markup = $this->compactElement($node, $depth, $wrap, $writing);
         $condition = $substitutions->condition($node);
 
         return $condition === null
@@ -168,48 +204,84 @@ final class FluidMarkupWriter
     }
 
     /**
-     * The element on one line, without a condition wrapped around it.
+     * The element with its children on one line (tags may still wrap their
+     * attributes), without a condition wrapped around it.
      */
-    private function compactElement(Node $node, Substitutions $substitutions, SourceCasing $casing): string
+    private function compactElement(Node $node, int $depth, bool $wrap, MarkupWriting $writing): string
     {
-        $name = $casing->restoreTag($node->name);
-        $attributes = $this->attributes($node, $substitutions, $casing);
+        $name = $writing->casing->restoreTag($node->name);
+        $opening = $this->openingTag($node, $depth, $wrap, $writing);
 
         $children = '';
         foreach ($node->children() as $child) {
-            $children .= $this->compact($child, $substitutions, $casing);
+            $content = $this->compact($child, $depth, $wrap, $writing);
+            if ($content === '') {
+                continue;
+            }
+            $children .= ($node->hasWhitespaceBefore($child) ? ' ' : '') . $content;
+        }
+        if ($children !== '' && $node->hasTrailingWhitespace()) {
+            $children .= ' ';
         }
 
         return match (true) {
-            in_array($node->name, self::VOID_ELEMENTS, true) => '<' . $name . $attributes . ' />',
-            $children === '' && str_contains($node->name, ':') => '<' . $name . $attributes . ' />',
-            default => '<' . $name . $attributes . '>' . $children . '</' . $name . '>',
+            in_array($node->name, self::VOID_ELEMENTS, true) => $opening . ' />',
+            trim($children) === '' && str_contains($node->name, ':') => $opening . ' />',
+            default => $opening . '>' . $children . '</' . $name . '>',
         };
     }
 
-    private function attributes(Node $node, Substitutions $substitutions, SourceCasing $casing): string
+    /**
+     * The opening tag without its closing bracket. When wrapping is allowed and
+     * the tag is long, each attribute goes on a line of its own.
+     */
+    private function openingTag(Node $node, int $depth, bool $wrap, MarkupWriting $writing): string
     {
-        $rendered = '';
+        $name = '<' . $writing->casing->restoreTag($node->name);
+        $attributes = [];
         foreach ($node->attributes as $attribute => $value) {
-            $value = $substitutions->attributeOverride($node, $attribute)
-                ?? $substitutions->applyRenames($value);
-            $rendered .= sprintf(' %s="%s"', $casing->restoreAttribute($attribute), $this->escape($value));
+            $value = $writing->substitutions->attributeOverride($node, $attribute)
+                ?? $writing->substitutions->applyRenames($value);
+            $attributes[] = sprintf('%s="%s"', $writing->casing->restoreAttribute($attribute), $this->escape($value));
         }
 
-        return $rendered;
+        $single = $name . ($attributes === [] ? '' : ' ' . implode(' ', $attributes));
+        if (!$wrap || count($attributes) < 2 || strlen($single) <= self::MAX_TAG) {
+            return $single;
+        }
+
+        $attributeIndent = "\n" . str_repeat(self::INDENT, $depth + 1);
+
+        return $name . $attributeIndent . implode($attributeIndent, $attributes);
     }
 
-    private function text(Node $node, Substitutions $substitutions): string
+    private function text(Node $node, MarkupWriting $writing): string
     {
-        $text = $substitutions->textOverride($node) ?? $substitutions->applyRenames($node->text);
+        $text = $writing->substitutions->textOverride($node) ?? $writing->substitutions->applyRenames($node->text);
 
         return str_replace("\u{00A0}", '&nbsp;', $text);
     }
 
-    private function hasBlockDescendant(Node $node, Substitutions $substitutions): bool
+    /**
+     * A child that gets a line of its own: a block element, an element holding
+     * one, or an element wrapped in a condition.
+     */
+    private function isBlockNode(Node $node, MarkupWriting $writing): bool
+    {
+        $substitutions = $writing->substitutions;
+        if (!$node->isElement() || $substitutions->isDropped($node) || $substitutions->replacement($node) !== null) {
+            return false;
+        }
+
+        return in_array($node->name, self::BLOCK_ELEMENTS, true)
+            || $substitutions->condition($node) !== null
+            || $this->hasBlockDescendant($node, $writing);
+    }
+
+    private function hasBlockDescendant(Node $node, MarkupWriting $writing): bool
     {
         foreach ($node->children() as $child) {
-            if ($this->isBlockNode($child, $substitutions)) {
+            if ($this->isBlockNode($child, $writing)) {
                 return true;
             }
         }

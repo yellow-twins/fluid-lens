@@ -81,6 +81,13 @@ final class ComponentNamer
             $name = self::pascal($segment) . $name;
         }
 
+        // A single word ("Grid", "Method") says too little across a project: the
+        // folder it lives in gives the context ("ListGrid", "OrderFormMethod").
+        $parent = $segments === [] ? '' : self::pascal((string) end($segments));
+        if ($parent !== '' && $this->wordCount($name) === 1 && !str_contains($name, $parent)) {
+            $name = $parent . $name;
+        }
+
         return $name;
     }
 
@@ -229,5 +236,10 @@ final class ComponentNamer
         }
 
         return false;
+    }
+
+    private function wordCount(string $pascal): int
+    {
+        return count(preg_split('/(?=[A-Z])/', $pascal, -1, PREG_SPLIT_NO_EMPTY) ?: []);
     }
 }

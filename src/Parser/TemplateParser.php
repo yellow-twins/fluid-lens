@@ -117,6 +117,8 @@ final class TemplateParser
         $converted = $this->convert($domNode, $lines);
         if ($converted !== null) {
             $parent->addChild($converted);
+        } elseif ($domNode instanceof DOMText) {
+            $parent->addWhitespace();
         }
     }
 
@@ -151,6 +153,7 @@ final class TemplateParser
         foreach ($element->childNodes as $child) {
             $this->appendConverted($node, $child, $lines);
         }
+        $node->closeChildren();
 
         return $node;
     }

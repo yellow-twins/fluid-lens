@@ -191,6 +191,25 @@ final class ComponentAdvisorTest extends TestCase
         self::assertStringContainsString('<f:if condition="{showIcon}">', $merged->draft->source);
     }
 
+    public function testCopiedMarkupRanksAboveAPartialThatIsReusedAlready(): void
+    {
+        $card = '<div class="tile"><h3 class="tile__title">Shop</h3><p class="tile__text">Merch</p>'
+            . '<a class="tile__link" href="/shop">Open</a></div>';
+        $partial = '<div class="box"><h3 class="box__title">{title}</h3><p class="box__text">Text</p>'
+            . '<a class="box__link" href="/box">Open</a></div>';
+        $report = (new ComponentAdvisor())->advise(TemplateFactory::many([
+            'a/Templates/A.html' => '<main>' . $card . '<f:render partial="Box" arguments="{title: \'A\'}" /></main>',
+            'a/Templates/B.html' => '<main>' . $card . '<f:render partial="Box" arguments="{title: \'B\'}" /></main>',
+            'a/Partials/Box.html' => $partial,
+        ]));
+
+        self::assertSame(
+            ['Tile', 'Box'],
+            array_map(static fn ($candidate): string => $candidate->name, $report->candidates),
+        );
+        self::assertSame(0.6, $report->candidates[1]->score->factors['already a Partial'] ?? null);
+    }
+
     public function testRaisingTheThresholdDropsTheCandidate(): void
     {
         $report = (new ComponentAdvisor(new AdvisorSettings(minOccurrences: 4, sources: [CandidateSource::Partial])))

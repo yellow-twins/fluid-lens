@@ -7,6 +7,7 @@ namespace YellowTwins\FluidLens\Tests\Parser;
 use PHPUnit\Framework\TestCase;
 use YellowTwins\FluidLens\Parser\NodeType;
 use YellowTwins\FluidLens\Parser\TemplateParser;
+use YellowTwins\FluidLens\Parser\TreePruner;
 
 final class TemplateParserTest extends TestCase
 {
@@ -124,5 +125,25 @@ final class TemplateParserTest extends TestCase
         $text = $tree->children()[0]->children()[0];
         self::assertSame(NodeType::Text, $text->type);
         self::assertStringContainsString('{product.title}', $text->text);
+    }
+
+    public function testRemembersWhereWhitespaceWasWithoutKeepingIt(): void
+    {
+        $span = $this->parser->parse("<span> <b>x</b><i>y</i>\n</span>")->elementChildren()[0];
+        [$bold, $italic] = $span->elementChildren();
+
+        self::assertCount(2, $span->children());
+        self::assertTrue($span->hasWhitespaceBefore($bold));
+        self::assertFalse($span->hasWhitespaceBefore($italic));
+        self::assertTrue($span->hasTrailingWhitespace());
+    }
+
+    public function testThePrunerKeepsTheWhitespacePositions(): void
+    {
+        $tree = (new TreePruner())->prune($this->parser->parse('<p>a <b>x</b> </p>'), []);
+        $paragraph = $tree->elementChildren()[0];
+
+        self::assertTrue($paragraph->hasTrailingWhitespace());
+        self::assertFalse($paragraph->hasWhitespaceBefore($paragraph->elementChildren()[0]));
     }
 }

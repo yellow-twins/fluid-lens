@@ -20,6 +20,11 @@ use YellowTwins\FluidLens\Fluid\RenderCall;
 final class PartialMerger
 {
     /**
+     * Each merged Partial file beyond the first is a file less to keep in sync.
+     */
+    private const BONUS_PER_FILE = 0.5;
+
+    /**
      * @param array<string, non-empty-list<RenderCall>> $callsByFile render calls by Partial file
      */
     public function __construct(
@@ -82,29 +87,34 @@ final class PartialMerger
             'merge:' . implode(',', $files),
             $reasons,
             new PartialUsage($names, $files),
-            $this->score($candidate, count($calls), $callers, $scorer),
+            $this->score($candidate, count($calls), $callers, count($files), $scorer),
         );
     }
 
+    /**
+     * Weighted by how often the Partials are rendered, plus a bonus for every
+     * file the merge removes.
+     */
     private function score(
         ComponentCandidate $candidate,
         int $calls,
         int $callers,
+        int $partialFiles,
         CandidateScorer $scorer,
     ): CandidateScore {
-        if ($calls <= $candidate->callSites()) {
-            return $candidate->score;
-        }
+        $adjustments = array_diff_key(
+            $candidate->score->factors,
+            array_flip(['call sites', 'size', 'spread', 'arguments']),
+        );
+        $adjustments['merges Partials'] = 1 + self::BONUS_PER_FILE * ($partialFiles - 1);
 
-        $rescored = $scorer->score(
-            $calls,
+        return $scorer->score(
+            max($calls, $candidate->callSites()),
             $candidate->elementCount,
             max($callers, $candidate->fileCount()),
             count($candidate->arguments),
-            array_diff_key($candidate->score->factors, array_flip(['call sites', 'size', 'spread', 'arguments'])),
+            $adjustments,
         );
-
-        return $rescored->value > $candidate->score->value ? $rescored : $candidate->score;
     }
 
     /**

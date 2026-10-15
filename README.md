@@ -110,7 +110,7 @@ arguments with inferred types, a ready-to-copy component file and the call that
 replaces every occurrence — nothing is written:
 
 ```text
- #1  TeasersHeader  <st:teasersHeader>   score 6.0 (medium)
+ #6  TeasersHeader  <st:teasersHeader>   score 13.2 (high)
      similar markup · 2 call site(s) in 2 file(s) · 7 element(s)
      Why
        - the Partials Event/Teaser/Header (events), Product/Teaser/Header (mollie_cart)
@@ -130,7 +130,7 @@ replaces every occurrence — nothing is written:
        <f:argument name="class" type="string" />
        …
        <div class="{class}">
-           <h2 class="pixellari {variant}"><f:translate key="{key}" extensionName="projectfiles" /></h2>
+           <h2 class="pixellari {variant}"> <f:translate key="{key}" extensionName="projectfiles" /> </h2>
            <f:link.action pageUid="{pageUid}" class="normal-link {linkVariant}" action="list">
                …
                <f:if condition="{showIcon}">

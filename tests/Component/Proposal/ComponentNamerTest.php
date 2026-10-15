@@ -17,8 +17,11 @@ final class ComponentNamerTest extends TestCase
 
         self::assertSame('TeaserHeader', $namer->fromPartialName('Event/Teaser/Header'));
         self::assertSame('PodcastCard', $namer->fromPartialName('Podcast/Card'));
-        self::assertSame('Billing', $namer->fromPartialName('Cart/Confirmation/Address/Billing'));
         self::assertSame('ListItem', $namer->fromPartialName('List/Item'));
+        // A single word gets the folder it lives in.
+        self::assertSame('AddressBilling', $namer->fromPartialName('Cart/Confirmation/Address/Billing'));
+        self::assertSame('ListGrid', $namer->fromPartialName('Product/List/Grid'));
+        self::assertSame('Footer', $namer->fromPartialName('Footer'));
     }
 
     public function testOffersMoreSpecificNamesForClashes(): void

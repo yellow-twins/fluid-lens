@@ -65,6 +65,36 @@ final class FluidMarkupWriterTest extends TestCase
         );
     }
 
+    public function testKeepsASpaceWhereTheSourceHadWhitespace(): void
+    {
+        $source = "<p>\n    <span> <f:translate key=\"a\" /></span>\n    <b>x</b><i>y</i>\n</p>";
+
+        self::assertSame(
+            '<p> <span> <f:translate key="a" /></span> <b>x</b><i>y</i> </p>',
+            $this->write($source),
+        );
+    }
+
+    public function testWrapsTheAttributesOfLongTagsOnly(): void
+    {
+        $source = '<div class="wrap"><f:link.action pageUid="{settings.detailPageUid}" extensionName="Events"'
+            . ' pluginName="Artists" controller="Artist" action="show" arguments="{artist: artist}">'
+            . '{artist.name}</f:link.action><f:translate key="short" /></div>';
+
+        self::assertSame(
+            "<div class=\"wrap\">\n"
+                . "    <f:link.action\n"
+                . "        pageUid=\"{settings.detailPageUid}\"\n"
+                . "        extensionName=\"Events\"\n"
+                . "        pluginName=\"Artists\"\n"
+                . "        controller=\"Artist\"\n"
+                . "        action=\"show\"\n"
+                . "        arguments=\"{artist: artist}\">{artist.name}</f:link.action><f:translate key=\"short\" />\n"
+                . '</div>',
+            $this->write($source),
+        );
+    }
+
     public function testDropsNodesAndKeepsNonBreakingSpaces(): void
     {
         $source = '<p>a&nbsp;b<f:comment>note</f:comment></p>';

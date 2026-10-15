@@ -164,7 +164,9 @@ final class CloneCandidateFactory
                 $elementCount,
                 $files,
                 count($arguments),
-                ['shared content' => round($shared, 2)],
+                // The threshold already rules out copies sharing little; above it, more
+                // shared content counts, without punishing the variation a component absorbs.
+                ['shared content' => round(sqrt($shared), 2)],
             ),
             draft: $this->drafts->render(
                 $name,

@@ -22,12 +22,21 @@ final class TreePruner
         $copy = new Node($node->type, $node->name, $node->attributes, $node->text, $node->sourceRange);
 
         foreach ($node->children() as $child) {
+            if ($node->hasWhitespaceBefore($child)) {
+                $copy->addWhitespace();
+            }
+
             if ($this->isSuppressed($child, $ignoredLines)) {
                 continue;
             }
 
             $copy->addChild($this->prune($child, $ignoredLines));
         }
+
+        if ($node->hasTrailingWhitespace()) {
+            $copy->addWhitespace();
+        }
+        $copy->closeChildren();
 
         return $copy;
     }
