@@ -104,12 +104,13 @@ final class PartialCandidateFactory
         }
 
         $name = $context->names->claimFirst($this->namer->partialNameOptions($partial->name));
+        $body = self::bodyElements($template->tree);
         $tag = $context->tag($name);
         $elements = $this->elementCount($container);
         $files = $this->callerFiles($calls);
 
         return new ComponentCandidate(
-            id: 'partial:' . $partial->name,
+            id: 'partial:' . $template->file,
             name: $name,
             tag: $tag,
             sources: [CandidateSource::Partial],
@@ -149,6 +150,7 @@ final class PartialCandidateFactory
                 NamespaceDeclarations::fromSource($template->source) + $context->collectionNamespace(),
                 $context->components->collectionDirectory(),
             ),
+            existingMatch: count($body) === 1 ? $context->existingMatch($body[0]) : null,
         );
     }
 
@@ -165,6 +167,28 @@ final class PartialCandidateFactory
         }
 
         return $root;
+    }
+
+    /**
+     * The elements a Partial (or component) file consists of, without the Fluid
+     * namespace wrapper and bookkeeping such as f:argument.
+     *
+     * @return list<Node>
+     */
+    public static function bodyElements(Node $tree): array
+    {
+        $container = $tree;
+        foreach ($tree->elementChildren() as $child) {
+            if ($child->name === 'html') {
+                $container = $child;
+                break;
+            }
+        }
+
+        return array_values(array_filter(
+            $container->elementChildren(),
+            static fn (Node $node): bool => !in_array($node->name, self::BOOKKEEPING, true),
+        ));
     }
 
     /**

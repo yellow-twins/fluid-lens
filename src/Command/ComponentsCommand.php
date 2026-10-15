@@ -61,6 +61,7 @@ final class ComponentsCommand extends Command
             ->addOption('min-elements', null, InputOption::VALUE_REQUIRED, 'Minimum size of copied markup (3).')
             ->addOption('max-arguments', null, InputOption::VALUE_REQUIRED, 'Flag suggestions above this (6).')
             ->addOption('threshold', null, InputOption::VALUE_REQUIRED, 'Similarity for similar markup (0.8).')
+            ->addOption('min-shared', null, InputOption::VALUE_REQUIRED, 'Content copies must share (0.45).')
             ->addOption('limit', null, InputOption::VALUE_REQUIRED, 'Show at most this many candidates.', '20')
             ->addOption('no-draft', null, InputOption::VALUE_NONE, 'Leave out the drafts in the report.');
     }
@@ -121,6 +122,7 @@ final class ComponentsCommand extends Command
             threshold: $this->options->float($input, 'threshold', $components->threshold, 0.8),
             sources: $sources,
             prefixes: $components->prefixes,
+            minShared: $this->options->float($input, 'min-shared', $components->minShared, 0.45),
         );
     }
 

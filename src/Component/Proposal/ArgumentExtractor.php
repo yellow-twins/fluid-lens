@@ -12,6 +12,7 @@ use YellowTwins\FluidLens\Component\Model\ArgumentType;
 use YellowTwins\FluidLens\Component\Model\CandidateNote;
 use YellowTwins\FluidLens\Fluid\SourceCasing;
 use YellowTwins\FluidLens\Parser\Node;
+use YellowTwins\FluidLens\Parser\NodeType;
 
 /**
  * Turns the differences between copies of the same markup into arguments.
@@ -80,7 +81,8 @@ final class ArgumentExtractor
             $argument = $this->argumentFor($point, $namer, $casing, $substitutions);
             $arguments[] = $argument;
             foreach ($this->callValuesFor($point) as $copy => $value) {
-                if ($value !== null) {
+                // A value equal to the default needs not be passed.
+                if ($value !== null && !($argument->optional && $value === $argument->default)) {
                     $callValues[$copy][$argument->name] = $value;
                 }
             }
@@ -109,7 +111,7 @@ final class ArgumentExtractor
     ): ArgumentProposal {
         $values = array_values(array_filter($this->callValuesFor($point), static fn (?string $v): bool => $v !== null));
         $optional = $point->isMissingSomewhere() || in_array('', $values, true);
-        $name = $namer->claim($this->nameFor($point, $casing));
+        $name = $this->claimName($this->nameFor($point, $casing), $point->node, $namer, $casing);
 
         $origin = match ($point->kind) {
             DiffPoint::CLASS_TOKENS => ArgumentOrigin::ClassTokens,
@@ -133,6 +135,44 @@ final class ArgumentExtractor
             $origin,
             array_slice(array_values(array_unique($values)), 0, 4),
         );
+    }
+
+    /**
+     * Claims the name, or — when another difference already has it — the name
+     * prefixed with the role of its element: a second "variant" on a link
+     * becomes "linkVariant".
+     */
+    private function claimName(string $name, Node $node, ArgumentNamer $namer, SourceCasing $casing): string
+    {
+        if (!$namer->isTaken($name)) {
+            return $namer->claim($name);
+        }
+
+        $role = $node->type === NodeType::Text ? $node->parent() : $node;
+
+        return $namer->claim($this->role($role, $casing) . ucfirst($name));
+    }
+
+    private function role(?Node $element, SourceCasing $casing): string
+    {
+        if ($element === null) {
+            return 'item';
+        }
+
+        $name = $casing->restoreTag($element->name);
+        if (str_contains($name, ':')) {
+            $parts = explode('.', explode(':', $name, 2)[1] ?? $name);
+            $name = (string) end($parts);
+            $name = in_array($name, ['action', 'page', 'typolink', 'external', 'email'], true) ? 'link' : $name;
+        }
+
+        return match ($name) {
+            'a' => 'link',
+            'h1', 'h2', 'h3', 'h4', 'h5', 'h6' => 'heading',
+            'img', 'image' => 'image',
+            'p' => 'paragraph',
+            default => lcfirst(self::camel($name)),
+        };
     }
 
     private function substitute(DiffPoint $point, string $name, Substitutions $substitutions): void

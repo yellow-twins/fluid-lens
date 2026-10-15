@@ -158,6 +158,39 @@ final class ComponentAdvisorTest extends TestCase
         self::assertSame([], $report->candidates);
     }
 
+    public function testMergesPartialsThatHoldTheSameFrame(): void
+    {
+        $header = '<div class="%s-header" data-teaser="header"><h2 class="title pixellari">%s</h2>'
+            . '<f:link.page pageUid="{settings.%sPid}" class="more normal-link" title="Show all">'
+            . '<span class="label">All</span><site:icon name="arrow" /></f:link.page></div>';
+        // Small trees lose many pq-grams to one missing element, hence the lower similarity.
+        $settings = new AdvisorSettings(threshold: 0.65, sources: [CandidateSource::NearDuplicate]);
+        $report = (new ComponentAdvisor($settings))
+            ->advise(TemplateFactory::many([
+                'news/Partials/Teaser/Header.html' => sprintf($header, 'news', 'Latest news', 'news'),
+                'shop/Partials/Teaser/Header.html' => str_replace(
+                    '<site:icon name="arrow" />',
+                    '',
+                    sprintf($header, 'shop', 'New products', 'shop'),
+                ),
+                'news/Templates/List.html' => '<f:render partial="Teaser/Header" arguments="{_all}" />',
+                'news/Templates/Show.html' => '<f:render partial="Teaser/Header" arguments="{_all}" />',
+                'shop/Templates/List.html' => '<f:render partial="Teaser/Header" arguments="{_all}" />',
+            ]));
+
+        self::assertCount(1, $report->candidates);
+        $merged = $report->candidates[0];
+        self::assertSame('merge:news/Partials/Teaser/Header.html,shop/Partials/Teaser/Header.html', $merged->id);
+        self::assertSame([CandidateSource::NearDuplicate], $merged->sources);
+        self::assertStringContainsString('merge them into one component', $merged->reasons[0]);
+        self::assertStringContainsString('rendered 3×', $merged->reasons[1]);
+
+        $arguments = array_map(static fn ($argument): string => $argument->name, $merged->arguments);
+        self::assertContains('showIcon', $arguments);
+        self::assertNotNull($merged->draft);
+        self::assertStringContainsString('<f:if condition="{showIcon}">', $merged->draft->source);
+    }
+
     public function testRaisingTheThresholdDropsTheCandidate(): void
     {
         $report = (new ComponentAdvisor(new AdvisorSettings(minOccurrences: 4, sources: [CandidateSource::Partial])))

@@ -65,6 +65,17 @@ final class PartialIndex
         return $partials;
     }
 
+    public function byFile(string $file): ?PartialFile
+    {
+        foreach ($this->partials() as $partial) {
+            if ($partial->file() === $file) {
+                return $partial;
+            }
+        }
+
+        return null;
+    }
+
     public function resolve(RenderCall $call): PartialResolution
     {
         if ($call->partial === null) {

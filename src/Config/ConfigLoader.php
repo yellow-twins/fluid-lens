@@ -74,6 +74,7 @@ final class ConfigLoader
                 minElements: $this->intOrNull($components['minElements'] ?? null),
                 maxArguments: $this->intOrNull($components['maxArguments'] ?? null),
                 threshold: $this->floatOrNull($components['threshold'] ?? null),
+                minShared: $this->floatOrNull($components['minShared'] ?? null),
                 only: $this->stringList($components['only'] ?? null),
                 prefixes: $this->stringList($components['prefixes'] ?? null),
                 baseline: $this->stringOrNull($components['baseline'] ?? null),

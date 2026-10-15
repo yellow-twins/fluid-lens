@@ -59,6 +59,8 @@ return [
         'maxArguments' => 6,
         // Similarity for similar (not identical) markup, 0..1.
         'threshold' => 0.8,
+        // Share of values and texts copies must have in common; below it they only share their shape.
+        'minShared' => 0.45,
         // Signals to use: partials, clones, similar (default: all).
         // 'only' => ['partials'],
         // Component namespace prefixes besides those detected from xmlns/{namespace}.

@@ -9,11 +9,15 @@ use YellowTwins\FluidLens\Component\Index\PartialFile;
 use YellowTwins\FluidLens\Component\Index\PartialIndex;
 use YellowTwins\FluidLens\Component\Index\ResolutionStatus;
 use YellowTwins\FluidLens\Component\Model\CandidateSource;
+use YellowTwins\FluidLens\Component\Model\ComponentCandidate;
 use YellowTwins\FluidLens\Component\Model\ComponentReport;
 use YellowTwins\FluidLens\Component\Model\KeptPartial;
 use YellowTwins\FluidLens\Component\Model\UnresolvedPartial;
 use YellowTwins\FluidLens\Detector\CloneDetector;
 use YellowTwins\FluidLens\Detector\CloneOccurrence;
+use YellowTwins\FluidLens\Detector\NearDuplicateDetector;
+use YellowTwins\FluidLens\Detector\NearDuplicateMember;
+use YellowTwins\FluidLens\Fingerprint\SkeletonHasher;
 use YellowTwins\FluidLens\Fluid\RenderCall;
 use YellowTwins\FluidLens\Fluid\RenderCallFinder;
 use YellowTwins\FluidLens\Parser\Node;
@@ -39,7 +43,7 @@ final class ComponentAdvisor
     ) {
         $scorer = new CandidateScorer($settings->maxArguments);
         $this->partials = $partials ?? new PartialCandidateFactory($scorer);
-        $this->clones = $clones ?? new CloneCandidateFactory($scorer);
+        $this->clones = $clones ?? new CloneCandidateFactory($settings->minShared, $scorer);
     }
 
     /**
@@ -56,20 +60,31 @@ final class ComponentAdvisor
         $unresolved = [];
         $skipped = 0;
 
+        $partials = PartialIndex::build($templates);
+        [$callsByFile, $unresolvedCalls] = $this->resolveCalls($templates, $partials);
+
         if ($this->settings->uses(CandidateSource::Partial)) {
-            [$kept, $unreferenced, $unresolved, $skippedPartials] = $this->advisePartials(
-                $templates,
+            [$kept, $unreferenced, $skippedPartials] = $this->advisePartials(
+                $partials,
+                $callsByFile,
                 $context,
                 $deduplicator,
             );
+            $unresolved = $unresolvedCalls;
             $skipped += $skippedPartials;
         }
 
+        $merger = new PartialMerger($partials, $callsByFile);
         if ($this->settings->uses(CandidateSource::Clone)) {
-            $skipped += $this->adviseClones($templates, $context, $deduplicator);
+            $skipped += $this->adviseClones($templates, $context, $deduplicator, $merger);
+        }
+
+        if ($this->settings->uses(CandidateSource::NearDuplicate)) {
+            $skipped += $this->adviseSimilar($templates, $context, $deduplicator, $merger);
         }
 
         [$candidates, $duplicates] = $deduplicator->result();
+        [$candidates, $superseded] = $this->withoutMergedPartials($candidates);
 
         return new ComponentReport(
             count($templates),
@@ -78,20 +93,48 @@ final class ComponentAdvisor
             $components->components(),
             $unreferenced,
             $unresolved,
-            $skipped + $duplicates,
+            $skipped + $duplicates + $superseded,
         );
     }
 
     /**
-     * @param list<ParsedTemplate> $templates
+     * A suggestion to merge several Partials replaces the suggestions for each
+     * of those Partials on its own.
      *
-     * @return array{0: list<KeptPartial>, 1: list<PartialFile>, 2: list<UnresolvedPartial>, 3: int}
+     * @param list<ComponentCandidate> $candidates
+     *
+     * @return array{0: list<ComponentCandidate>, 1: int}
      */
-    private function advisePartials(array $templates, DraftContext $context, CandidateDeduplicator $deduplicator): array
+    private function withoutMergedPartials(array $candidates): array
     {
-        $partials = PartialIndex::build($templates);
-        [$callsByFile, $unresolved] = $this->resolveCalls($templates, $partials);
+        $merged = [];
+        foreach ($candidates as $candidate) {
+            if (str_starts_with($candidate->id, 'merge:') && $candidate->partial !== null) {
+                foreach ($candidate->partial->files as $file) {
+                    $merged['partial:' . $file] = true;
+                }
+            }
+        }
 
+        $kept = array_values(array_filter(
+            $candidates,
+            static fn (ComponentCandidate $candidate): bool => !isset($merged[$candidate->id]),
+        ));
+
+        return [$kept, count($candidates) - count($kept)];
+    }
+
+    /**
+     * @param array<string, non-empty-list<RenderCall>> $callsByFile
+     *
+     * @return array{0: list<KeptPartial>, 1: list<PartialFile>, 2: int}
+     */
+    private function advisePartials(
+        PartialIndex $partials,
+        array $callsByFile,
+        DraftContext $context,
+        CandidateDeduplicator $deduplicator,
+    ): array {
         $kept = [];
         $unreferenced = [];
         $skipped = 0;
@@ -114,11 +157,11 @@ final class ComponentAdvisor
             } elseif ($result instanceof KeptPartial) {
                 $kept[] = $result;
             } else {
-                $deduplicator->add($result, [$partial->template->tree]);
+                $deduplicator->add($result, PartialCandidateFactory::bodyElements($partial->template->tree));
             }
         }
 
-        return [$kept, $unreferenced, $unresolved, $skipped];
+        return [$kept, $unreferenced, $skipped];
     }
 
     /**
@@ -126,45 +169,130 @@ final class ComponentAdvisor
      *
      * @return int the number of repeated structures below the thresholds or unsuitable
      */
-    private function adviseClones(array $templates, DraftContext $context, CandidateDeduplicator $deduplicator): int
-    {
-        $byFile = [];
-        $scanned = [];
-        foreach ($templates as $template) {
-            $byFile[$template->file] = $template;
-            if (!ComponentIndex::isDefinition($template->file)) {
-                $scanned[] = $template;
-            }
-        }
-
+    private function adviseClones(
+        array $templates,
+        DraftContext $context,
+        CandidateDeduplicator $deduplicator,
+        PartialMerger $merger,
+    ): int {
         $detector = new CloneDetector($this->settings->minElements, $this->settings->minOccurrences);
         $skipped = 0;
-        foreach ($detector->detect($scanned) as $group) {
-            $files = array_unique(array_map(static fn (CloneOccurrence $o): string => $o->file, $group->occurrences));
-            if (!$this->meetsThresholds($group->occurrenceCount(), count($files))) {
-                $skipped++;
-                continue;
-            }
-
-            $candidate = $this->clones->create(
+        foreach ($detector->detect($this->scannable($templates)) as $group) {
+            $added = $this->addMarkupCandidate(
                 'clone:' . $group->hash,
+                CandidateSource::Clone,
                 $group->elementCount,
                 $group->occurrences,
-                $byFile,
+                $templates,
                 $context,
+                $deduplicator,
+                $merger,
             );
-            if ($candidate === null) {
-                $skipped++;
-                continue;
-            }
-
-            $deduplicator->add(
-                $candidate,
-                array_map(static fn (CloneOccurrence $occurrence): Node => $occurrence->node, $group->occurrences),
-            );
+            $skipped += $added ? 0 : 1;
         }
 
         return $skipped;
+    }
+
+    /**
+     * @param list<ParsedTemplate> $templates
+     *
+     * @return int the number of similar structures below the thresholds or unsuitable
+     */
+    private function adviseSimilar(
+        array $templates,
+        DraftContext $context,
+        CandidateDeduplicator $deduplicator,
+        PartialMerger $merger,
+    ): int {
+        $detector = new NearDuplicateDetector($this->settings->threshold, max(4, $this->settings->minElements));
+        $hasher = new SkeletonHasher();
+        $skipped = 0;
+        foreach ($detector->detect($this->scannable($templates)) as $cluster) {
+            $members = $cluster->members;
+            usort(
+                $members,
+                static fn (NearDuplicateMember $a, NearDuplicateMember $b): int
+                    => $b->occurrenceCount() <=> $a->occurrenceCount(),
+            );
+
+            $occurrences = [];
+            $hashes = [];
+            $elements = 0;
+            foreach ($members as $member) {
+                array_push($occurrences, ...$member->occurrences);
+                $hashes[] = $hasher->fingerprint($member->representative)->hash;
+                $elements = max($elements, $member->elementCount);
+            }
+            sort($hashes);
+
+            $added = $occurrences !== [] && $this->addMarkupCandidate(
+                'similar:' . sha1(implode(',', $hashes)),
+                CandidateSource::NearDuplicate,
+                $elements,
+                $occurrences,
+                $templates,
+                $context,
+                $deduplicator,
+                $merger,
+            );
+            $skipped += $added ? 0 : 1;
+        }
+
+        return $skipped;
+    }
+
+    /**
+     * @param non-empty-list<CloneOccurrence> $occurrences
+     * @param list<ParsedTemplate>            $templates
+     */
+    private function addMarkupCandidate(
+        string $id,
+        CandidateSource $source,
+        int $elementCount,
+        array $occurrences,
+        array $templates,
+        DraftContext $context,
+        CandidateDeduplicator $deduplicator,
+        PartialMerger $merger,
+    ): bool {
+        $files = array_unique(array_map(static fn (CloneOccurrence $o): string => $o->file, $occurrences));
+        if (!$this->meetsThresholds(count($occurrences), count($files))) {
+            return false;
+        }
+
+        $byFile = [];
+        foreach ($templates as $template) {
+            $byFile[$template->file] = $template;
+        }
+
+        $candidate = $this->clones->create($id, $source, $elementCount, $occurrences, $byFile, $context);
+        if ($candidate === null) {
+            return false;
+        }
+
+        $deduplicator->add(
+            $merger->merge($candidate, $occurrences, new CandidateScorer($this->settings->maxArguments)),
+            array_map(static fn (CloneOccurrence $occurrence): Node => $occurrence->node, $occurrences),
+        );
+
+        return true;
+    }
+
+    /**
+     * Templates whose markup can be suggested: everything but the component
+     * definitions themselves.
+     *
+     * @param list<ParsedTemplate> $templates
+     *
+     * @return list<ParsedTemplate>
+     */
+    private function scannable(array $templates): array
+    {
+        return array_values(array_filter(
+            $templates,
+            static fn (ParsedTemplate $template): bool => !ComponentIndex::isDefinition($template->file),
+        ));
     }
 
     /**

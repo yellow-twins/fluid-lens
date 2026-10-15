@@ -29,6 +29,14 @@ All notable changes to this project are documented here. The format is based on
   control flow only or would need too many arguments are not suggested.
   Overlapping suggestions are reduced to the best one. `--only` selects the
   signals (`partials`, `clones`, `similar`).
+  Similar (not identical) markup is aligned as a longest common subsequence:
+  an element only some copies have becomes optional behind a boolean argument,
+  a region that differs too much becomes the component's `<f:slot />` (each
+  call carries its copy's content). When the copies are the entire content of
+  several Partials, the suggestion is to merge those Partials, weighted by how
+  often they are rendered. A suggestion that looks like an existing component
+  points at it. `--min-shared` / `minShared` sets the share of values and texts
+  copies must have in common (default 0.45).
 - `ParsedTemplate` keeps the raw template source, and `FluidArray` accepts
   numeric keys and offers `parseRaw()` to tell quoted strings from variables.
 

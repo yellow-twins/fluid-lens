@@ -17,6 +17,7 @@ final class AdvisorSettings
      * @param int                   $minElements    minimum size of copied markup
      * @param int                   $maxArguments   above this a suggestion is flagged as too configurable
      * @param float                 $threshold      similarity for similar markup, 0..1
+     * @param float                 $minShared      share of values and texts copies must have in common
      * @param list<CandidateSource> $sources        which signals to use
      * @param list<string>          $prefixes       component namespace prefixes besides the detected ones
      */
@@ -32,6 +33,7 @@ final class AdvisorSettings
             CandidateSource::NearDuplicate,
         ],
         public readonly array $prefixes = [],
+        public readonly float $minShared = 0.45,
     ) {
     }
 

@@ -38,6 +38,33 @@ final class ComponentCandidate
     ) {
     }
 
+    /**
+     * A copy with a different identity, explanation, Partial reference or
+     * score — used when copied markup turns out to be the body of several
+     * Partials that can be merged.
+     *
+     * @param list<string> $reasons
+     */
+    public function rebrand(string $id, array $reasons, PartialUsage $partial, CandidateScore $score): self
+    {
+        return new self(
+            $id,
+            $this->name,
+            $this->tag,
+            $this->sources,
+            $this->elementCount,
+            $this->occurrences,
+            $this->arguments,
+            $this->slot,
+            $reasons,
+            $this->caveats,
+            $score,
+            $partial,
+            $this->draft,
+            $this->existingMatch,
+        );
+    }
+
     public function callSites(): int
     {
         return count($this->occurrences);

@@ -23,8 +23,12 @@ use YellowTwins\FluidLens\Parser\NodeType;
  */
 final class OccurrenceAligner
 {
-    /** @var list<array<string, string>> per copy: its local variable name => the first copy's */
-    private array $renames = [];
+    private LocalRenames $renames;
+
+    public function __construct()
+    {
+        $this->renames = new LocalRenames();
+    }
 
     /**
      * @param non-empty-list<Node> $roots the root of each copy; the first one is drafted from
@@ -34,7 +38,7 @@ final class OccurrenceAligner
     public function align(array $roots): ?array
     {
         $points = [];
-        $this->renames = array_fill(0, count($roots), []);
+        $this->renames = new LocalRenames();
 
         return $this->alignNodes($roots, $points) ? $points : null;
     }
@@ -107,7 +111,7 @@ final class OccurrenceAligner
             $name = (string) $name;
             $values = array_map(static fn (Node $node): ?string => $node->attribute($name), $nodes);
             if (Bindings::isBinding($nodes[0]->name, $name)) {
-                $this->recordRenames($values);
+                $this->renames->record($values);
                 continue;
             }
 
@@ -122,19 +126,6 @@ final class OccurrenceAligner
     }
 
     /**
-     * @param list<string|null> $names the local variable name each copy binds
-     */
-    private function recordRenames(array $names): void
-    {
-        $first = $names[0];
-        foreach ($names as $copy => $name) {
-            if ($first !== null && $name !== null && $name !== $first) {
-                $this->renames[$copy][$name] = $first;
-            }
-        }
-    }
-
-    /**
      * Each copy's values with its local variables named as in the first copy.
      *
      * @param list<string> $values
@@ -144,14 +135,7 @@ final class OccurrenceAligner
     private function renamed(array $values): array
     {
         foreach ($values as $copy => $value) {
-            foreach ($this->renames[$copy] ?? [] as $from => $to) {
-                $value = (string) preg_replace(
-                    '/(?<![\w.$])' . preg_quote($from, '/') . '(?=[.}\s,)\]]|$)/',
-                    $to,
-                    $value,
-                );
-            }
-            $values[$copy] = $value;
+            $values[$copy] = $this->renames->apply($copy, $value);
         }
 
         return $values;

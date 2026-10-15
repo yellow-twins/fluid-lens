@@ -101,6 +101,7 @@ final class ArgumentExtractorTest extends TestCase
 
         $proposal = (new ArgumentExtractor())->extract($points, 2, SourceCasing::none(), ['text']);
 
-        self::assertSame(['text2' => 'string'], $this->types($proposal->arguments));
+        // "text" is taken, so the name gets the role of its element.
+        self::assertSame(['bText' => 'string'], $this->types($proposal->arguments));
     }
 }

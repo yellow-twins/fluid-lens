@@ -20,6 +20,7 @@ final class ComponentsConfig
         public readonly ?int $minElements = null,
         public readonly ?int $maxArguments = null,
         public readonly ?float $threshold = null,
+        public readonly ?float $minShared = null,
         public readonly array $only = [],
         public readonly array $prefixes = [],
         public readonly ?string $baseline = null,
