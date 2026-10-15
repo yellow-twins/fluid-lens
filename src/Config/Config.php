@@ -30,6 +30,7 @@ final class Config
         public readonly ?float $similarThreshold = null,
         public readonly ?int $similarMinElements = null,
         public readonly ?string $consistencyBaseline = null,
+        public readonly ComponentsConfig $components = new ComponentsConfig(),
     ) {
     }
 

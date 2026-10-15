@@ -46,6 +46,31 @@ final class ConfigLoaderTest extends TestCase
         self::assertNull($config->cloneMinOccurrences);
     }
 
+    public function testLoadsTheComponentsSection(): void
+    {
+        $this->write(<<<'PHP'
+            <?php
+            return [
+                'components' => [
+                    'minFiles' => 3,
+                    'threshold' => 0.75,
+                    'only' => ['partials'],
+                    'prefixes' => ['my'],
+                    'baseline' => 'components.json',
+                ],
+            ];
+            PHP);
+
+        $components = (new ConfigLoader())->load($this->file)->components;
+
+        self::assertSame(3, $components->minFiles);
+        self::assertSame(0.75, $components->threshold);
+        self::assertSame(['partials'], $components->only);
+        self::assertSame(['my'], $components->prefixes);
+        self::assertSame('components.json', $components->baseline);
+        self::assertNull($components->maxArguments);
+    }
+
     public function testMissingExplicitFileThrows(): void
     {
         $this->expectException(ConfigException::class);

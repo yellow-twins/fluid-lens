@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 use Symfony\Component\Console\Application;
 use YellowTwins\FluidLens\Command\AnalyzeCommand;
+use YellowTwins\FluidLens\Command\ComponentsCommand;
 use YellowTwins\FluidLens\Command\ConsistencyCommand;
 use YellowTwins\FluidLens\Command\LintCommand;
 use YellowTwins\FluidLens\Command\ParseCommand;
@@ -36,5 +37,6 @@ use YellowTwins\FluidLens\Command\SimilarCommand;
     $application->add(new SimilarCommand());
     $application->add(new LintCommand());
     $application->add(new ConsistencyCommand());
+    $application->add(new ComponentsCommand());
     $application->run();
 })();

@@ -48,6 +48,25 @@ return [
         'minElements' => 4,
     ],
 
+    'components' => [
+        // A candidate needs this many call sites (render calls or copies) ...
+        'minOccurrences' => 2,
+        // ... spread over this many files; repetition inside one file is a loop, not a component.
+        'minFiles' => 2,
+        // Minimum size of copied markup.
+        'minElements' => 3,
+        // More arguments than this flag a suggestion as "too configurable".
+        'maxArguments' => 6,
+        // Similarity for similar (not identical) markup, 0..1.
+        'threshold' => 0.8,
+        // Signals to use: partials, clones, similar (default: all).
+        // 'only' => ['partials'],
+        // Component namespace prefixes besides those detected from xmlns/{namespace}.
+        // 'prefixes' => ['my'],
+        // Accept the current suggestions and only report new ones (see components --generate-baseline).
+        // 'baseline' => 'fluid-lens-components-baseline.json',
+    ],
+
     'consistency' => [
         // Accept the current mix and only fail on new drift (see
         // consistency --generate-baseline).

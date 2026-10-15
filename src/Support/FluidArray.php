@@ -18,9 +18,10 @@ use Generator;
 final class FluidArray
 {
     /**
-     * Keys are unquoted identifiers or quoted attribute names such as 'aria-label'.
+     * Keys are unquoted identifiers, numeric list keys or quoted attribute names
+     * such as 'aria-label'.
      */
-    private const KEY = '/^[A-Za-z_][\w.:-]*$/';
+    private const KEY = '/^(?:[A-Za-z_][\w.:-]*|\d+)$/';
 
     /**
      * An inline ViewHelper call such as {@code {f:translate(key: 'x')}} opens with
@@ -32,6 +33,19 @@ final class FluidArray
      * @return array<string, string>|null null when the value is not an array literal
      */
     public static function parse(string $value): ?array
+    {
+        $pairs = self::parseRaw($value);
+
+        return $pairs === null ? null : array_map(static fn (string $raw): string => self::unquote($raw), $pairs);
+    }
+
+    /**
+     * Like {@see parse()}, but keeps each value exactly as written — quotes
+     * included — so a quoted string can be told apart from a bare variable.
+     *
+     * @return array<string, string>|null null when the value is not an array literal
+     */
+    public static function parseRaw(string $value): ?array
     {
         $body = self::unwrap($value);
         if ($body === null || preg_match(self::INLINE_VIEWHELPER, trim($value)) === 1) {
@@ -54,7 +68,7 @@ final class FluidArray
                 return null;
             }
 
-            $pairs[$key] = self::unquote($parts[1]);
+            $pairs[$key] = trim($parts[1]);
         }
 
         return $pairs;

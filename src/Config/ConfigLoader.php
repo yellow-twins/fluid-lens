@@ -53,6 +53,7 @@ final class ConfigLoader
         $analyze = $this->section($data, 'analyze');
         $similar = $this->section($data, 'similar');
         $consistency = $this->section($data, 'consistency');
+        $components = $this->section($data, 'components');
 
         return new Config(
             paths: $this->stringList($data['paths'] ?? null),
@@ -67,6 +68,16 @@ final class ConfigLoader
             similarThreshold: $this->floatOrNull($similar['threshold'] ?? null),
             similarMinElements: $this->intOrNull($similar['minElements'] ?? null),
             consistencyBaseline: $this->stringOrNull($consistency['baseline'] ?? null),
+            components: new ComponentsConfig(
+                minOccurrences: $this->intOrNull($components['minOccurrences'] ?? null),
+                minFiles: $this->intOrNull($components['minFiles'] ?? null),
+                minElements: $this->intOrNull($components['minElements'] ?? null),
+                maxArguments: $this->intOrNull($components['maxArguments'] ?? null),
+                threshold: $this->floatOrNull($components['threshold'] ?? null),
+                only: $this->stringList($components['only'] ?? null),
+                prefixes: $this->stringList($components['prefixes'] ?? null),
+                baseline: $this->stringOrNull($components['baseline'] ?? null),
+            ),
         );
     }
 

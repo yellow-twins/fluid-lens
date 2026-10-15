@@ -7,6 +7,22 @@ All notable changes to this project are documented here. The format is based on
 
 ### Added
 
+- `components` command: suggests which Partials should become Fluid components
+  (Fluid 5 / TYPO3 14). For every Partial rendered from several files it
+  proposes a component name and tag, the arguments (from the variables the
+  Partial reads, declared `f:argument`s taken over unchanged, implicit
+  `{settings.*}` turned into explicit arguments) with inferred types, and prints
+  a ready-to-copy component draft plus the call replacing each render call.
+  Partials that rely on their caller's context stay Partials with the reason
+  (`f:form.*` fields outside their form, sections of the calling template,
+  layouts); conversions that need care carry caveats (implicit settings,
+  callers passing `{_all}`, callers passing different arguments). Also lists
+  the existing components, Partials no scanned template renders and render
+  calls that resolve to no scanned file. Text and JSON output; nothing is
+  written. `fluidlens:components` in TYPO3.
+- `ParsedTemplate` keeps the raw template source, and `FluidArray` accepts
+  numeric keys and offers `parseRaw()` to tell quoted strings from variables.
+
 - Tolerant HTML5-based Fluid template parser producing a framework-agnostic node
   tree, with Fluid-aware handling of self-closing ViewHelpers, dotted ViewHelper
   names and opaque `{expressions}`, plus source line resolution.

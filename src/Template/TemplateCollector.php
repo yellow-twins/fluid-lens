@@ -77,7 +77,7 @@ final class TemplateCollector
 
             $tree = $this->parser->parse($source);
             $tree = $this->pruner->prune($tree, $this->suppressions->scan($source));
-            $templates[] = new ParsedTemplate($file, $tree);
+            $templates[] = new ParsedTemplate($file, $tree, $source);
         }
 
         return new TemplateCollection($templates, $skipped);
