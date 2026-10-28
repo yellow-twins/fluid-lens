@@ -5,6 +5,8 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-10-28
+
 ### Added
 
 - `i18n` command: finds text written straight into Fluid templates — text content
