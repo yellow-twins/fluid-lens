@@ -69,6 +69,26 @@ return [
         // 'baseline' => 'fluid-lens-components-baseline.json',
     ],
 
+    'i18n' => [
+        // Texts to accept as they are (brand names, …); '/…/' is a regular expression.
+        // 'ignore' => ['ACME', '/^©/'],
+        // Further attributes whose value a visitor reads, e.g. TYPO3 backend modals.
+        // 'attributes' => ['data-title', 'data-content'],
+        // Language the templates are written in, when it is not the source language;
+        // `--fix` then also writes e.g. de.locallang.xlf.
+        // 'language' => 'de',
+        // source-language of language files fluid-lens creates.
+        // 'sourceLanguage' => 'en',
+        // Text content as <f:translate> ("tag") or {f:translate()} ("inline"); default: as the templates do.
+        // 'style' => 'tag',
+        // Language file for templates outside an extension (must lie inside one).
+        // 'file' => 'packages/site/Resources/Private/Language/locallang.xlf',
+        // Letters a text needs to count.
+        'minLetters' => 2,
+        // Accept the current texts and only fail on new ones (see i18n --generate-baseline).
+        // 'baseline' => 'fluid-lens-i18n-baseline.json',
+    ],
+
     'consistency' => [
         // Accept the current mix and only fail on new drift (see
         // consistency --generate-baseline).

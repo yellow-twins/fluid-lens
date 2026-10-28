@@ -111,11 +111,26 @@ little effort.
   (done); consider `.gitignore`-style ignore files.
 - SARIF for `analyze`/`similar`/`components` as well as `lint`.
 
+## i18n (`i18n`, since 0.10.0)
+
+- **Sentences with inline markup**: move `Please <a …>click here</a>` as one label
+  with HTML (CDATA) and `f:format.raw`, or split it into a label with placeholders
+  and a link ViewHelper argument. Needs an escaping story, so v1 only reports it.
+- **Literals in Fluid arrays and arguments**: rewrite `aria="{label: 'Search'}"`,
+  and inspect strings passed to Partials (`arguments="{label: 'Save'}"`) or
+  ViewHelpers (`then: 'Show more'`) — they may end up on the page.
+- **Expressions inside a text**: `From {price -> f:format.currency()}` could become
+  an argument (`arguments="{0: '{price -> f:format.currency()}'}"`).
+- **Language detection** to warn when `--language` does not match the texts.
+- **XLIFF 2.0** files.
+- The `Source/` scanner gives byte offsets; it is the groundwork for
+  `components --fix` below.
+
 ## Components (`components`, since 0.9.0)
 
 - `components --fix`: write the drafted component file and replace the
-  occurrences with the call (needs byte offsets in the parser; v2 theme like the
-  Partial auto-fix).
+  occurrences with the call (byte offsets now exist in `src/Source/`, built for
+  `i18n --fix`; v2 theme like the Partial auto-fix).
 - Duplication as runs of sibling nodes (address lines separated by `<br>`), which
   the element-based detectors cannot see.
 - Named slots, once Fluid supports more than the default slot.

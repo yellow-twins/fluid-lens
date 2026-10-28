@@ -5,7 +5,7 @@
 [![PHP Version](https://img.shields.io/packagist/php-v/yellow-twins/fluid-lens)](https://packagist.org/packages/yellow-twins/fluid-lens)
 [![License](https://img.shields.io/packagist/l/yellow-twins/fluid-lens)](LICENSE)
 
-> Static analysis for Fluid templates — find markup that should be a Partial or a Fluid component, and catch accessibility & best-practice problems, straight from the command line.
+> Static analysis for Fluid templates — find markup that should be a Partial or a Fluid component, catch accessibility & best-practice problems, and move hardcoded text into language files, straight from the command line.
 
 `fluid-lens` reads your Fluid templates and *x-rays* them: it looks for duplicated
 markup structures that should be extracted into reusable Partials, and (from a later
@@ -19,9 +19,10 @@ optional TYPO3 command wrapper.
 
 **Usable today.** fluid-lens finds exact duplicated structures and near-duplicates
 across your templates, suggests which of them — and which Partials — should become
-Fluid components (TYPO3 14 / Fluid 5), and lints them for accessibility (WCAG) and
-best-practice problems — with inline suppression and a baseline for adopting it on
-an existing project. See the roadmap for what's next.
+Fluid components (TYPO3 14 / Fluid 5), lints them for accessibility (WCAG) and
+best-practice problems, and finds hardcoded text and moves it into XLIFF language
+files — with inline suppression and a baseline for adopting it on an existing
+project. See the roadmap for what's next.
 
 ## Why
 
@@ -147,6 +148,37 @@ What has to stay a Partial is listed separately with the reason — most notably
 ViewHelper context and the fields would lose the form. Copies that only share their
 shape, or would need more arguments than `--max-arguments`, are not suggested.
 See [docs/components.md](docs/components.md) for the signals, the scoring, every
+option and the limits.
+
+### Move hardcoded text into language files
+
+Languages are often added late, and until then text is written straight into the
+templates. `i18n` lists every such text — text content and the attributes a
+visitor reads (`title`, `alt`, `placeholder`, `aria-label`, submit `value`, …) —
+and `--fix` moves it into the right XLIFF file, in the language it is written in,
+with an `f:translate` call in its place:
+
+```bash
+vendor/bin/fluid-lens i18n packages/                       # report
+vendor/bin/fluid-lens i18n packages/ --fix --dry-run       # unified diff, nothing written
+vendor/bin/fluid-lens i18n packages/ --fix --language=de   # templates are written in German
+```
+
+```html
+<h2>Upcoming events</h2>                 →  <h2><f:translate key="event.list.upcomingEvents" extensionName="events" /></h2>
+<p>Hello {user.name}!</p>                →  <p><f:translate key="event.list.hello" extensionName="events" arguments="{0: user.name}" /></p>
+<button title="Close">×</button>         →  <button title="{f:translate(key: 'common.close', extensionName: 'events')}">×</button>
+```
+
+An extension's templates go into its `Resources/Private/Language/locallang.xlf`, a
+Content Block's into its own `language/labels.xlf`. Keys follow the template path
+(`event.list.…`), and a label that already exists with the same text is reused.
+With `--language=de` the text is also written as the `<target>` of
+`de.locallang.xlf`, so a German site looks the same while English is translated
+later. Sentences with inline markup (`Please <a>click here</a>`), ViewHelper
+expressions inside a text and literals in Fluid arrays are reported for a human
+instead of being split up. Every rewritten template is scanned again before it is
+written. See [docs/i18n.md](docs/i18n.md) for the rules, the key scheme, every
 option and the limits.
 
 ### Check project-wide consistency
@@ -364,7 +396,7 @@ composer exec fluid-lens -- analyze packages/   # ad-hoc, without a script
 ```
 
 This repository itself ships `composer analyze`, `composer similar`,
-`composer lint` and `composer components` shortcuts (see `composer.json`), e.g. `composer analyze -- path/`.
+`composer lint`, `composer components` and `composer i18n` shortcuts (see `composer.json`), e.g. `composer analyze -- path/`.
 
 ## Configuration
 
@@ -402,6 +434,7 @@ given, fall back to the configured `paths`.
 | `lint`    | Check accessibility (WCAG) & best practices | `--only`, `--exclude`, `--fail-on`, `--baseline`, `--generate-baseline`, `--list-rules`, `--json`, `--sarif` |
 | `consistency` | Flag mixed slider/icon/other implementations | `--only`, `--exclude`, `--list-checks`, `--baseline`, `--generate-baseline`, `--json` |
 | `components` | Suggest Fluid components, with drafts | `--only`, `--min-occurrences`, `--min-files`, `--min-elements`, `--max-arguments`, `--threshold`, `--min-shared`, `--limit`, `--no-draft`, `--baseline`, `--generate-baseline`, `--json` |
+| `i18n`    | Find hardcoded text, move it into XLIFF files | `--fix`, `--dry-run`, `--language`, `--source-language`, `--style`, `--file`, `--min-letters`, `--baseline`, `--generate-baseline`, `--json`, `--sarif` |
 | `parse`   | Dump one template's structural node tree  | `--json` |
 
 ### Exit codes
@@ -462,6 +495,11 @@ best-practice sniffs, with criteria that need a rendered page reported as
 The `components` command suggests Fluid 5 components from frequently rendered
 Partials, copied and similar markup — with proposed arguments, an optional-element
 and slot analysis, a draft and the replacing call for every occurrence.
+
+**Hardcoded text → language files** ✅
+The `i18n` command finds text written straight into templates and moves it into
+the extension's (or Content Block's) XLIFF file, replacing it with `f:translate` —
+byte-exact, with a diff preview and a self-check.
 
 **Next — more sniffs**: accordions/tiles/navigation component patterns, `<picture>`
 best practice, expanded ARIA validation.

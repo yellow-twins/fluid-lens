@@ -87,11 +87,13 @@ vendor/bin/typo3 fluidlens:similar packages/my_ext/Resources/Private/Templates
 vendor/bin/typo3 fluidlens:lint packages/
 vendor/bin/typo3 fluidlens:consistency packages/
 vendor/bin/typo3 fluidlens:components packages/
+vendor/bin/typo3 fluidlens:i18n packages/ --fix --dry-run
 ```
 
 `fluidlens:components` is the one most specific to TYPO3 14: it suggests which
 Partials and repeated markup should become Fluid 5 components — see
-[components.md](components.md).
+[components.md](components.md). `fluidlens:i18n` moves hardcoded text into the
+extensions' XLIFF files — see [i18n.md](i18n.md).
 
 These become available when the package is loaded as a TYPO3 extension (the
 commands build their own dependencies, so no `Services.yaml` is required). For a

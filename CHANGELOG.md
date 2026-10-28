@@ -5,6 +5,30 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+
+- `i18n` command: finds text written straight into Fluid templates — text content
+  and the attributes a visitor reads (`title`, `alt`, `placeholder`, `aria-label`,
+  submit `value`, `option label`, meta description, …, extendable in the config) —
+  and reports for each one the key and language file it belongs in.
+- `i18n --fix` moves the texts into XLIFF files in the language they are written
+  in: an extension's templates into `Resources/Private/Language/locallang.xlf`
+  (referenced with `extensionName`), a Content Block's into its
+  `language/labels.xlf` (referenced by its `LLL:EXT:` path), other templates into
+  the file set with `--file`. Plain variables become `%1$s` placeholders with
+  `arguments`; existing labels with the same text are reused; keys follow the
+  template path (`event.list.upcomingEvents`). `--language=de` also writes the text
+  as the `<target>` of `de.locallang.xlf`. `--dry-run` prints a unified diff
+  instead of writing; `--style` picks the tag or inline form (default: whichever
+  the templates use more).
+- Sentences with inline markup, non-variable expressions, literals in Fluid array
+  arguments and unquoted values are reported for a human, never split up.
+- A byte-exact source scanner (`src/Source/`) for rewriting templates without
+  reformatting them; every rewritten template is scanned again and left alone
+  unless exactly the moved texts are gone.
+- Baseline (`--generate-baseline` / `--baseline`), JSON and SARIF output, an
+  `i18n` config section and the native `fluidlens:i18n` TYPO3 command.
+
 ## [0.9.0] - 2026-10-15
 
 ### Added
