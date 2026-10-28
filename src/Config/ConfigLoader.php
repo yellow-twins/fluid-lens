@@ -54,6 +54,7 @@ final class ConfigLoader
         $similar = $this->section($data, 'similar');
         $consistency = $this->section($data, 'consistency');
         $components = $this->section($data, 'components');
+        $i18n = $this->section($data, 'i18n');
 
         return new Config(
             paths: $this->stringList($data['paths'] ?? null),
@@ -78,6 +79,16 @@ final class ConfigLoader
                 only: $this->stringList($components['only'] ?? null),
                 prefixes: $this->stringList($components['prefixes'] ?? null),
                 baseline: $this->stringOrNull($components['baseline'] ?? null),
+            ),
+            i18n: new I18nConfig(
+                minLetters: $this->intOrNull($i18n['minLetters'] ?? null),
+                ignore: $this->stringList($i18n['ignore'] ?? null),
+                attributes: $this->stringList($i18n['attributes'] ?? null),
+                file: $this->stringOrNull($i18n['file'] ?? null),
+                style: $this->stringOrNull($i18n['style'] ?? null),
+                language: $this->stringOrNull($i18n['language'] ?? null),
+                sourceLanguage: $this->stringOrNull($i18n['sourceLanguage'] ?? null),
+                baseline: $this->stringOrNull($i18n['baseline'] ?? null),
             ),
         );
     }

@@ -31,6 +31,7 @@ final class Config
         public readonly ?int $similarMinElements = null,
         public readonly ?string $consistencyBaseline = null,
         public readonly ComponentsConfig $components = new ComponentsConfig(),
+        public readonly I18nConfig $i18n = new I18nConfig(),
     ) {
     }
 

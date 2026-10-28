@@ -40,6 +40,7 @@
         "similar": "@php bin/fluid-lens similar",
         "lint": "@php bin/fluid-lens lint",
         "components": "@php bin/fluid-lens components",
+        "i18n": "@php bin/fluid-lens i18n",
         "cs": "phpcs",
         "cs:fix": "phpcbf",
         "stan": "phpstan analyse",

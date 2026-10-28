@@ -5,6 +5,7 @@ declare(strict_types=1);
 use YellowTwins\FluidLens\Command\AnalyzeCommand;
 use YellowTwins\FluidLens\Command\ComponentsCommand;
 use YellowTwins\FluidLens\Command\ConsistencyCommand;
+use YellowTwins\FluidLens\Command\I18nCommand;
 use YellowTwins\FluidLens\Command\LintCommand;
 use YellowTwins\FluidLens\Command\SimilarCommand;
 
@@ -16,6 +17,7 @@ use YellowTwins\FluidLens\Command\SimilarCommand;
 //   vendor/bin/typo3 fluidlens:analyze packages/my_ext/Resources/Private/Templates
 //   vendor/bin/typo3 fluidlens:similar packages/my_ext/Resources/Private/Templates
 //   vendor/bin/typo3 fluidlens:components packages/
+//   vendor/bin/typo3 fluidlens:i18n packages/ --fix --dry-run
 //
 // The commands construct their own dependencies, so no service configuration is
 // required. In a plain (non-TYPO3) project just use the standalone binary
@@ -27,4 +29,5 @@ return [
     'fluidlens:lint' => ['class' => LintCommand::class],
     'fluidlens:consistency' => ['class' => ConsistencyCommand::class],
     'fluidlens:components' => ['class' => ComponentsCommand::class],
+    'fluidlens:i18n' => ['class' => I18nCommand::class],
 ];
