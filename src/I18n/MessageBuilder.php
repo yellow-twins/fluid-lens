@@ -52,7 +52,9 @@ final class MessageBuilder
 
             $variable = trim(substr($segment->text, 1, -1));
             if (preg_match(self::VARIABLE, $variable) !== 1) {
-                $reason ??= sprintf('contains the Fluid expression %s, which is not a plain variable', $segment->text);
+                $reason ??= str_starts_with($variable, 'f:translate(')
+                    ? 'partly translated already; move the rest of the text into that label'
+                    : sprintf('contains the Fluid expression %s, which is not a plain variable', $segment->text);
                 continue;
             }
 

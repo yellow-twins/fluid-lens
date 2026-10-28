@@ -22,9 +22,10 @@ final class SourceScanner
 {
     /**
      * Elements whose content is not markup. Fluid does not render the content of
-     * f:comment, and script/style bodies are code, not text.
+     * f:comment, and script/style bodies (also through TYPO3's asset ViewHelpers)
+     * are code, not text.
      */
-    private const RAW_TEXT_ELEMENTS = ['script', 'style', 'f:comment'];
+    private const RAW_TEXT_ELEMENTS = ['script', 'style', 'f:comment', 'f:asset.script', 'f:asset.css'];
 
     private const TAG_NAME = '/\G[A-Za-z][\w.:-]*/';
 

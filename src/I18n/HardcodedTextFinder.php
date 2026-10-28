@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace YellowTwins\FluidLens\I18n;
 
+use YellowTwins\FluidLens\Detector\UnionFind;
 use YellowTwins\FluidLens\Source\ScannedSource;
 use YellowTwins\FluidLens\Source\Segment;
 use YellowTwins\FluidLens\Source\SegmentType;
@@ -55,6 +56,9 @@ final class HardcodedTextFinder
         'aria' => ['label', 'description', 'roledescription', 'placeholder', 'valuetext'],
         'additionalattributes' => ['title', 'alt', 'placeholder', 'aria-label', 'aria-description'],
     ];
+
+    /** A single "word" at least this long is a URL, hash or data, not prose. */
+    private const MAX_WORD_LENGTH = 50;
 
     private const BUTTON_INPUT_TYPES = ['submit', 'button', 'reset'];
 
@@ -262,23 +266,24 @@ final class HardcodedTextFinder
      */
     private function groupSentences(array $runs): array
     {
-        $groups = [];
-        foreach ($runs as $run) {
-            $joined = null;
-            foreach ($groups as $index => $group) {
-                foreach ($group as $member) {
-                    if ($this->isNested($member['path'], $run['path'])) {
-                        $joined = $index;
-                        break 2;
-                    }
+        if ($runs === []) {
+            return [];
+        }
+
+        // Transitively: in "<span>a</span> b <strong>c</strong>", b links a and c into one sentence.
+        $sentences = new UnionFind(count($runs));
+        foreach ($runs as $index => $run) {
+            for ($other = 0; $other < $index; $other++) {
+                if ($this->isNested($runs[$other]['path'], $run['path'])) {
+                    $sentences->union($other, $index);
                 }
             }
+        }
 
-            if ($joined === null) {
-                $groups[] = [$run];
-            } else {
-                $groups[$joined][] = $run;
-            }
+        $groups = [];
+        foreach ($sentences->clusters() as $members) {
+            sort($members);
+            $groups[] = array_map(static fn (int $member): array => $runs[$member], $members);
         }
 
         return $groups;
@@ -490,11 +495,16 @@ final class HardcodedTextFinder
     /**
      * Whether the text reads as words for a visitor rather than as a value the
      * template assembles: an identifier glued to a variable ({@code {prefix}Label}),
-     * a code such as "ST-2026", or a single token stored in f:variable.
+     * a code such as "ST-2026", a long token such as a URL or base64 data, or a
+     * single token stored in f:variable.
      */
     private function isProse(TextAnalysis $analysis, string $parent): bool
     {
         if ($analysis->letters < $this->settings->minLetters) {
+            return false;
+        }
+        $isOneToken = preg_match('/\s/u', $analysis->plainText) !== 1;
+        if ($isOneToken && mb_strlen($analysis->plainText) >= self::MAX_WORD_LENGTH) {
             return false;
         }
         if (preg_match('/\}\p{L}|\p{L}\{/u', $analysis->display) === 1) {

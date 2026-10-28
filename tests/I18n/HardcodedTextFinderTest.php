@@ -69,6 +69,32 @@ final class HardcodedTextFinderTest extends TestCase
         self::assertSame('Please click here to continue.', $texts[0]->text);
     }
 
+    public function testTextBetweenSiblingsJoinsThemIntoOneSentence(): void
+    {
+        $texts = $this->find(
+            '<div><span>Please agree in</span> <strong>knowledge of the risks</strong> to it.</div>',
+        );
+
+        self::assertCount(1, $texts);
+        self::assertFalse($texts[0]->isExtractable());
+        self::assertSame('Please agree in knowledge of the risks to it.', $texts[0]->text);
+    }
+
+    public function testPartlyTranslatedTextNamesTheTranslation(): void
+    {
+        $texts = $this->find('<f:image src="x.svg" alt="{f:translate(key: \'close\')} icon" />');
+
+        self::assertStringContainsString('partly translated already', (string) $texts[0]->reason);
+    }
+
+    public function testIgnoresAssetCodeAndLongTokens(): void
+    {
+        $source = '<f:asset.script identifier="x">var label = "Hello there";</f:asset.script>'
+            . '<template>data:application/zip;base64,UEsDBBQAAAgIAMhjLF1Uv+WCJhAAACj9AAAZAAAAYTEw</template>';
+
+        self::assertSame([], $this->find($source));
+    }
+
     public function testSiblingElementsStandAlone(): void
     {
         $texts = $this->find('<dl><span>Date</span><span>Venue</span></dl><a><span>Read</span> <svg></svg></a>');
